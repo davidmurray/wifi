@@ -16,11 +16,12 @@
 @interface DMNetworksManager : NSObject {
     WiFiManagerRef      _manager;
     WiFiDeviceClientRef _client;
-
+    BOOL                _scanning;
     NSMutableArray      *_networks;
 }
 
 @property(nonatomic, retain, readonly) NSArray *networks;
+@property(nonatomic, assign, readonly, getter = isScanning) BOOL scanning;
 
 + (id)sharedInstance;
 - (void)reloadNetworks;

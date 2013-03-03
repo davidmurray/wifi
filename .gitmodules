@@ -1,3 +1,6 @@
 [submodule "theos"]
 	path = theos
 	url = git@github.com:DHowett/theos.git
+[submodule "MBProgressHUD"]
+	path = MBProgressHUD
+	url = git@github.com:jdg/MBProgressHUD.git

@@ -10,6 +10,10 @@
 
 @interface DMNetworksViewController ()
 
+- (void)scanTapped;
+- (void)managerDidBeginScanning;
+- (void)managerDidFinishScanning;
+
 @end
 
 @implementation DMNetworksViewController
@@ -36,6 +40,8 @@
     UIBarButtonItem *scanButton = [[UIBarButtonItem alloc] initWithTitle:@"Scan" style:UIBarButtonItemStyleBordered target:self action:@selector(scanTapped)];
     [[self navigationItem] setLeftBarButtonItem:scanButton];
     [scanButton release];
+
+    [self setTitle:@"Networks"];
 }
 
 - (void)dealloc
@@ -53,17 +59,22 @@
 
 - (void)scanTapped
 {
-    NSLog(@"tapped");
+    [[DMNetworksManager sharedInstance] reloadNetworks];
 }
 
 - (void)managerDidBeginScanning
 {
-    NSLog(@"begin");
+    _hud = [[UIProgressHUD alloc] initWithFrame:CGRectZero];
+    [_hud setText:@"Scanning..."];
+    [_hud showInView:[self view]];
 }
 
 - (void)managerDidFinishScanning
 {
-    NSLog(@"finish: %@", [[DMNetworksManager sharedInstance] networks]);
+    [[self tableView] reloadData];
+
+    [_hud hide];
+    [_hud release];
 }
 
 #pragma mark - Table view data source
@@ -77,7 +88,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     // Return the number of rows in the section.
-    return 0;
+    return [[[DMNetworksManager sharedInstance] networks] count];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -85,61 +96,31 @@
     static NSString *CellIdentifier = @"Cell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
 
-    // Configure the cell...
+    if (cell == nil) {
+        cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier] autorelease];
+        [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+        [cell setAccessoryType:UITableViewCellAccessoryDetailDisclosureButton];
+    }
+
+    DMNetwork *network = [[[DMNetworksManager sharedInstance] networks] objectAtIndex:[indexPath row]];
+
+    [[cell textLabel] setText:[network SSID]];
+    [[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [network RSSI]]];
 
     return cell;
 }
 
-/*
-// Override to support conditional editing of the table view.
-- (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the specified item to be editable.
-    return YES;
-}
-*/
-
-/*
-// Override to support editing the table view.
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    if (editingStyle == UITableViewCellEditingStyleDelete) {
-        // Delete the row from the data source
-        [tableView deleteRowsAtIndexPaths:@[indexPath] withRowAnimation:UITableViewRowAnimationFade];
-    }
-    else if (editingStyle == UITableViewCellEditingStyleInsert) {
-        // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }
-}
-*/
-
-/*
-// Override to support rearranging the table view.
-- (void)tableView:(UITableView *)tableView moveRowAtIndexPath:(NSIndexPath *)fromIndexPath toIndexPath:(NSIndexPath *)toIndexPath
-{
-}
-*/
-
-/*
-// Override to support conditional rearranging of the table view.
-- (BOOL)tableView:(UITableView *)tableView canMoveRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    // Return NO if you do not want the item to be re-orderable.
-    return YES;
-}
-*/
-
 #pragma mark - Table view delegate
 
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
+- (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath
 {
-    // Navigation logic may go here. Create and push another view controller.
-    /*
-     <#DetailViewController#> *detailViewController = [[<#DetailViewController#> alloc] initWithNibName:@"<#Nib name#>" bundle:nil];
-     // ...
-     // Pass the selected object to the new view controller.
-     [self.navigationController pushViewController:detailViewController animated:YES];
-     */
+    DMNetwork *network = [[[DMNetworksManager sharedInstance] networks] objectAtIndex:[indexPath row]];
+
+    DMDetailViewController *detailViewController = [[DMDetailViewController alloc] initWithStyle:UITableViewStyleGrouped network:network];
+
+    [[self navigationController] pushViewController:detailViewController animated:YES];
+
+    [detailViewController release];
 }
 
 @end

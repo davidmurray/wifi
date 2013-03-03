@@ -12,11 +12,13 @@
 @interface DMNetwork : NSObject {
     WiFiNetworkRef _network;
     NSString       *_SSID;
-    int            _RSSI;
+    float          _RSSI;
+    NSString       *_encryptionModel;
 }
 
 @property(nonatomic, copy) NSString *SSID;
-@property(nonatomic, assign) int RSSI;
+@property(nonatomic, copy) NSString *encryptionModel;
+@property(nonatomic, assign) float RSSI;
 
 - (id)initWithNetwork:(WiFiNetworkRef)network;
 - (void)populateData;

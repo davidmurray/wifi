@@ -9,8 +9,9 @@
 #import "DMNetwork.h"
 
 @implementation DMNetwork
-@synthesize SSID = _SSID;
-@synthesize RSSI = _RSSI;
+@synthesize SSID            = _SSID;
+@synthesize RSSI            = _RSSI;
+@synthesize encryptionModel = _encryptionModel;
 
 - (id)initWithNetwork:(WiFiNetworkRef)network
 {
@@ -31,12 +32,11 @@
     [super dealloc];
 }
 
-/*
+
 - (NSString *)description
 {
-    return [NSString stringWithFormat:@"[%@] SSID: %@ RSSI: %i", self, [self SSID], [self RSSI]];
+    return [NSString stringWithFormat:@"[%@] SSID: %@ RSSI: %f", self, [self SSID], [self RSSI]];
 }
-*/
 
 - (void)populateData
 {
@@ -60,10 +60,18 @@
     // Convert to a negative number.
     strength = strength * -1;
 
-    NSLog(@"WiFi signal strength: %f dBm", strength);
+    [self setRSSI:strength];
 
-    [self setRSSI:(int)RSSI];
+    // Encryption model
+
+    if (WiFiNetworkIsWEP(_network))
+        [self setEncryptionModel:@"WEP"];
+    else if (WiFiNetworkIsWPA(_network))
+        [self setEncryptionModel:@"WPA"];
+    else if (WiFiNetworkIsEAP(_network))
+        [self setEncryptionModel:@"EAP"];
+    else
+        [self setEncryptionModel:@"None"];
 }
-
 
 @end

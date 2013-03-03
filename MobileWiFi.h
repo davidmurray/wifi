@@ -26,6 +26,9 @@ extern "C" {
     extern CFStringRef WiFiNetworkCopyPassword(WiFiNetworkRef);
     extern CFStringRef WiFiNetworkGetSSID(WiFiNetworkRef network);
     extern float WiFiNetworkGetNetworkUsage(WiFiNetworkRef network);
+    extern Boolean WiFiNetworkIsWEP(WiFiNetworkRef network);
+    extern Boolean WiFiNetworkIsWPA(WiFiNetworkRef network);
+    extern Boolean WiFiNetworkIsEAP(WiFiNetworkRef network);
 
     extern CFPropertyListRef WiFiDeviceClientCopyProperty(WiFiDeviceClientRef client, CFStringRef property);
     extern WiFiNetworkRef WiFiDeviceClientCopyCurrentNetwork(WiFiDeviceClientRef client);

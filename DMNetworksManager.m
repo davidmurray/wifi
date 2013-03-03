@@ -13,6 +13,7 @@
 - (void)_scan;
 - (void)_clearNetworks;
 - (void)_addNetwork:(DMNetwork *)network;
+- (void)_setIsScanning:(BOOL)scanning;
 
 @end
 
@@ -20,6 +21,7 @@ static DMNetworksManager *_sharedInstance = nil;
 
 @implementation DMNetworksManager
 @synthesize networks = _networks;
+@synthesize scanning = _scanning;
 
 + (id)sharedInstance
 {
@@ -57,8 +59,10 @@ static DMNetworksManager *_sharedInstance = nil;
 
 - (void)reloadNetworks
 {
+    [self _setIsScanning:YES];
+
     // Post a notification to tell the controller that scanning has started.
-//    [[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidStartScanning object:nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidStartScanning object:nil];
 
     [self _scan];
 }
@@ -85,6 +89,11 @@ static DMNetworksManager *_sharedInstance = nil;
     [_networks addObject:network];
 }
 
+- (void)_setIsScanning:(BOOL)scanning
+{
+    _scanning = scanning;
+}
+
 void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token)
 {
     [[DMNetworksManager sharedInstance] _clearNetworks];
@@ -97,15 +106,14 @@ void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef e
         [network populateData];
 
         [[DMNetworksManager sharedInstance] _addNetwork:network];
-        NSLog(@"z2");
 
         [network release];
     }
 
+    [[DMNetworksManager sharedInstance] _setIsScanning:NO];
+
     // Post a notification to tell the controller that scanning has finished.
     [[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidFinishScanning object:nil];
-
-    NSLog(@"networks count: %@", [[[DMNetworksManager sharedInstance] networks] count]);
 }
 
 @end
