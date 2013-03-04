@@ -56,7 +56,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     // Return the number of rows in the section.
-    return 1;
+    return 2;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -74,6 +74,9 @@
             [[cell textLabel] setText:@"Encryption Model"];
             [[cell detailTextLabel] setText:[_network encryptionModel]];
             break;
+        } case 1: {
+            [[cell textLabel] setText:@"Channel"];
+            [[cell detailTextLabel] setText:[NSString stringWithFormat:@"%i", [_network channel]]];
         }
     }
 

@@ -18,6 +18,7 @@ extern "C" {
     extern CFArrayRef WiFiManagerClientCopyNetworks(WiFiManagerRef manager);
     extern WiFiDeviceClientRef WiFiManagerClientGetDevice();
     extern void WiFiManagerClientScheduleWithRunLoop(WiFiManagerRef manager, CFRunLoopRef runLoop, CFStringRef mode);
+    extern void WiFiManagerClientUnscheduleFromRunLoop(WiFiManagerRef manager);
     extern void WiFiDeviceClientScanAsync(WiFiDeviceClientRef device, CFDictionaryRef dict, WiFiManagerScanCallback callback, uint32_t flags);
 
     extern CFPropertyListRef WiFiNetworkGetProperty(WiFiNetworkRef network, CFStringRef property);
@@ -29,6 +30,7 @@ extern "C" {
     extern Boolean WiFiNetworkIsWEP(WiFiNetworkRef network);
     extern Boolean WiFiNetworkIsWPA(WiFiNetworkRef network);
     extern Boolean WiFiNetworkIsEAP(WiFiNetworkRef network);
+    extern CFDateRef WiFiNetworkGetLastAssociationDate(WiFiNetworkRef network);
 
     extern CFPropertyListRef WiFiDeviceClientCopyProperty(WiFiDeviceClientRef client, CFStringRef property);
     extern WiFiNetworkRef WiFiDeviceClientCopyCurrentNetwork(WiFiDeviceClientRef client);

@@ -12,6 +12,7 @@
 @synthesize SSID            = _SSID;
 @synthesize RSSI            = _RSSI;
 @synthesize encryptionModel = _encryptionModel;
+@synthesize channel         = _channel;
 
 - (id)initWithNetwork:(WiFiNetworkRef)network
 {
@@ -72,6 +73,15 @@
         [self setEncryptionModel:@"EAP"];
     else
         [self setEncryptionModel:@"None"];
+
+    // Channel
+
+    CFNumberRef networkChannel = (CFNumberRef)WiFiNetworkGetProperty(_network, CFSTR("CHANNEL"));
+
+    int channel;
+    CFNumberGetValue(networkChannel, kCFNumberIntType, &channel);
+
+    [self setChannel:channel];
 }
 
 @end

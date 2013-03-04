@@ -13,7 +13,7 @@
 - (void)_scan;
 - (void)_clearNetworks;
 - (void)_addNetwork:(DMNetwork *)network;
-- (void)_setIsScanning:(BOOL)scanning;
+- (void)_scanningDidEnd;
 
 @end
 
@@ -59,7 +59,7 @@ static DMNetworksManager *_sharedInstance = nil;
 
 - (void)reloadNetworks
 {
-    [self _setIsScanning:YES];
+    _scanning = YES;
 
     // Post a notification to tell the controller that scanning has started.
     [[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidStartScanning object:nil];
@@ -89,9 +89,15 @@ static DMNetworksManager *_sharedInstance = nil;
     [_networks addObject:network];
 }
 
-- (void)_setIsScanning:(BOOL)scanning
+- (void)_scanningDidEnd
 {
-    _scanning = scanning;
+    _scanning = NO;
+
+    // Post a notification to tell the controller that scanning has finished.
+    [[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidFinishScanning object:nil];
+
+    // GTFO THE RUN LOOP
+    WiFiManagerClientUnscheduleFromRunLoop(_manager);
 }
 
 void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token)
@@ -110,10 +116,7 @@ void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef e
         [network release];
     }
 
-    [[DMNetworksManager sharedInstance] _setIsScanning:NO];
-
-    // Post a notification to tell the controller that scanning has finished.
-    [[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidFinishScanning object:nil];
+    [[DMNetworksManager sharedInstance] _scanningDidEnd];
 }
 
 @end
