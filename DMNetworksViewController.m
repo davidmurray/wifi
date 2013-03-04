@@ -66,7 +66,7 @@
 {
     _hud = [[UIProgressHUD alloc] initWithFrame:CGRectZero];
     [_hud setText:@"Scanning..."];
-    [_hud showInView:[self view]];
+    [_hud showInView:[[UIApplication sharedApplication] keyWindow]];
 }
 
 - (void)managerDidFinishScanning
