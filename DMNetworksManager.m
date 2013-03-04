@@ -59,6 +59,10 @@ static DMNetworksManager *_sharedInstance = nil;
 
 - (void)reloadNetworks
 {
+    // Prevent initiating a scan when we're already scanning.
+    if (_scanning == YES)
+        return;
+
     _scanning = YES;
 
     // Post a notification to tell the controller that scanning has started.
