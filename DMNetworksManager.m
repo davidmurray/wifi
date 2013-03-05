@@ -126,6 +126,9 @@ static DMNetworksManager *_sharedInstance = nil;
 
 - (void)_scanningDidEnd
 {
+    // Reverse the array so that networks with the highest signal strenght go to the top.
+    _networks = [[_networks reverseObjectEnumerator] allObjects];
+
     _scanning = NO;
 
     // Post a notification to tell the controller that scanning has finished.
@@ -143,7 +146,6 @@ static DMNetworksManager *_sharedInstance = nil;
 void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token)
 {
     DMNetworksManager *manager = [DMNetworksManager sharedInstance];
-
     [manager _clearNetworks];
 
     for (unsigned x = 0; x < CFArrayGetCount(results); x++) {
