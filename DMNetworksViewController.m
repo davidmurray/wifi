@@ -13,6 +13,10 @@
 - (void)scanTapped;
 - (void)managerDidBeginScanning;
 - (void)managerDidFinishScanning;
+- (void)enabledSwitchChanged:(UISwitch *)aSwitch;
+- (void)powerStateDidChange;
+
+void receivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo);
 
 @end
 
@@ -24,10 +28,16 @@
 
     if (self) {
 
+        _numberOfSections = 1;
+
+        CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, receivedNotification, CFSTR("com.apple.wifi.powerstatedidchange"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managerDidBeginScanning) name:kDMNetworksManagerDidStartScanning object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managerDidFinishScanning) name:kDMNetworksManagerDidFinishScanning object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(powerStateDidChange) name:kDMWiFiPowerStateDidChange object:nil];
 
-        [[DMNetworksManager sharedInstance] reloadNetworks];
+        if ([[DMNetworksManager sharedInstance] isWiFiEnabled])
+            [self scanTapped];
     }
 
     return self;
@@ -37,9 +47,10 @@
 {
     [super viewDidLoad];
 
-    UIBarButtonItem *scanButton = [[UIBarButtonItem alloc] initWithTitle:@"Scan" style:UIBarButtonItemStyleBordered target:self action:@selector(scanTapped)];
-    [[self navigationItem] setLeftBarButtonItem:scanButton];
-    [scanButton release];
+    _scanButton = [[UIBarButtonItem alloc] initWithTitle:@"Scan" style:UIBarButtonItemStyleBordered target:self action:@selector(scanTapped)];
+    [_scanButton setEnabled:[[DMNetworksManager sharedInstance] isWiFiEnabled]];
+    [[self navigationItem] setLeftBarButtonItem:_scanButton];
+    [_scanButton release];
 
     [self setTitle:@"Networks"];
 }
@@ -47,18 +58,22 @@
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
+    CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(), receivedNotification, NULL, NULL);
 
     [super dealloc];
 }
 
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
-
 - (void)scanTapped
 {
+    if (_numberOfSections == 2) {
+        [[self tableView] beginUpdates];
+
+        _numberOfSections = 1;
+
+        [[self tableView] deleteSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationAutomatic];
+        [[self tableView] endUpdates];
+    }
+
     [[DMNetworksManager sharedInstance] reloadNetworks];
 }
 
@@ -71,24 +86,70 @@
 
 - (void)managerDidFinishScanning
 {
-    [[self tableView] reloadData];
+    if (_numberOfSections == 1) {
+        [[self tableView] beginUpdates];
+
+        _numberOfSections = 2;
+
+        [[self tableView] insertSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationAutomatic];
+        [[self tableView] endUpdates];
+    }
 
     [_hud hide];
     [_hud release];
+}
+
+- (void)enabledSwitchChanged:(UISwitch *)aSwitch
+{
+    BOOL value = [aSwitch isOn];
+
+    [[DMNetworksManager sharedInstance] setWiFiEnabled:value];
+
+    if (value == YES) {
+        [self scanTapped];
+    } else {
+        if (_numberOfSections == 2) {
+            [[self tableView] beginUpdates];
+
+            _numberOfSections = 1;
+
+            [[self tableView] deleteSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationAutomatic];
+            [[self tableView] endUpdates];
+        }
+    }
+}
+
+- (void)powerStateDidChange
+{
+    BOOL wiFiEnabled = [[DMNetworksManager sharedInstance] isWiFiEnabled];
+
+    [_switchView setOn:wiFiEnabled animated:NO];
+    [_scanButton setEnabled:wiFiEnabled];
+    [self enabledSwitchChanged:_switchView];
+
+    if (wiFiEnabled)
+        [[DMNetworksManager sharedInstance] reloadNetworks];
 }
 
 #pragma mark - Table view data source
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    // Return the number of sections.
-    return 1;
+    return _numberOfSections;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     // Return the number of rows in the section.
-    return [[[DMNetworksManager sharedInstance] networks] count];
+
+    switch (section) {
+        case 0:
+            return 1;
+        case 1:
+            return [[[DMNetworksManager sharedInstance] networks] count];
+        default:
+            return 0;
+    }
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -102,10 +163,28 @@
         [cell setAccessoryType:UITableViewCellAccessoryDetailDisclosureButton];
     }
 
-    DMNetwork *network = [[[DMNetworksManager sharedInstance] networks] objectAtIndex:[indexPath row]];
+    switch ([indexPath section]) {
+        case 0: {
+            [[cell textLabel] setText:@"WiFi"];
 
-    [[cell textLabel] setText:[network SSID]];
-    [[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [network RSSI]]];
+            _switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
+            [cell setAccessoryView:_switchView];
+            [_switchView setOn:[[DMNetworksManager sharedInstance] isWiFiEnabled] animated:NO];
+            [_switchView addTarget:self action:@selector(enabledSwitchChanged:) forControlEvents:UIControlEventValueChanged];
+            [_switchView release];
+
+            break;
+        }
+
+        case 1: {
+            DMNetwork *network = [[[DMNetworksManager sharedInstance] networks] objectAtIndex:[indexPath row]];
+
+            [[cell textLabel] setText:[network SSID]];
+            [[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [network RSSI]]];
+
+            break;
+        }
+    }
 
     return cell;
 }
@@ -121,6 +200,13 @@
     [[self navigationController] pushViewController:detailViewController animated:YES];
 
     [detailViewController release];
+}
+
+#pragma mark - C Functions
+
+void receivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+{
+    [[NSNotificationCenter defaultCenter] postNotificationName:kDMWiFiPowerStateDidChange object:nil];
 }
 
 @end

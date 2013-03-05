@@ -63,12 +63,34 @@ static DMNetworksManager *_sharedInstance = nil;
     if (_scanning == YES)
         return;
 
+    NSLog(@"reloadNetworks");
+
+
     _scanning = YES;
 
     // Post a notification to tell the controller that scanning has started.
     [[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidStartScanning object:nil];
 
     [self _scan];
+}
+
+- (BOOL)isWiFiEnabled
+{
+    CFBooleanRef enabled = WiFiManagerClientCopyProperty(_manager, CFSTR("AllowEnable"));
+
+    BOOL value = CFBooleanGetValue(enabled);
+
+    CFRelease(enabled);
+
+    return value;
+}
+
+- (void)setWiFiEnabled:(BOOL)enabled
+{
+    // XXX: What.
+    CFBooleanRef value = (enabled ? kCFBooleanTrue : kCFBooleanFalse);
+
+    WiFiManagerClientSetProperty(_manager, CFSTR("AllowEnable"), value);
 }
 
 #pragma mark - Private APIs

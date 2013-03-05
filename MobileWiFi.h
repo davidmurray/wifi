@@ -19,7 +19,8 @@ extern "C" {
     extern WiFiDeviceClientRef WiFiManagerClientGetDevice();
     extern void WiFiManagerClientScheduleWithRunLoop(WiFiManagerRef manager, CFRunLoopRef runLoop, CFStringRef mode);
     extern void WiFiManagerClientUnscheduleFromRunLoop(WiFiManagerRef manager);
-    extern void WiFiDeviceClientScanAsync(WiFiDeviceClientRef device, CFDictionaryRef dict, WiFiManagerScanCallback callback, uint32_t flags);
+    extern void WiFiManagerClientSetProperty(WiFiManagerRef manager, CFStringRef property, CFPropertyListRef value);
+    extern CFPropertyListRef WiFiManagerClientCopyProperty(WiFiManagerRef manager, CFStringRef property);
 
     extern CFPropertyListRef WiFiNetworkGetProperty(WiFiNetworkRef network, CFStringRef property);
     extern int WiFiNetworkGetIntProperty(WiFiNetworkRef network, CFStringRef property);
@@ -35,6 +36,7 @@ extern "C" {
     extern CFPropertyListRef WiFiDeviceClientCopyProperty(WiFiDeviceClientRef client, CFStringRef property);
     extern WiFiNetworkRef WiFiDeviceClientCopyCurrentNetwork(WiFiDeviceClientRef client);
     extern int WiFiDeviceClientGetPower(WiFiDeviceClientRef client);
+    extern void WiFiDeviceClientScanAsync(WiFiDeviceClientRef device, CFDictionaryRef dict, WiFiManagerScanCallback callback, uint32_t flags);
 
     extern CFStringRef kWiFiATJTestModeEnabledKey;
     extern CFStringRef kWiFiDeviceCapabilitiesKey;

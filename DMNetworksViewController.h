@@ -10,6 +10,8 @@
 #import "DMNetworksManager.h"
 #import "DMDetailViewController.h"
 
+#define kDMWiFiPowerStateDidChange @"DMWiFiPowerStateDidChange"
+
 @interface UIProgressHUD : UIView
 - (id)initWithFrame:(CGRect)frame;
 - (void)done;
@@ -20,7 +22,10 @@
 @end
 
 @interface DMNetworksViewController : UITableViewController {
-    UIProgressHUD *_hud;
+    UIProgressHUD   *_hud;
+    UIBarButtonItem *_scanButton;
+    UISwitch        *_switchView;
+    long            _numberOfSections;
 }
 
 @end
