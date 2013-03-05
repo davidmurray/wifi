@@ -27,6 +27,4 @@
 + (id)sharedInstance;
 - (void)reloadNetworks;
 
-void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token);
-
 @end

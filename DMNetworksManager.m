@@ -15,6 +15,8 @@
 - (void)_addNetwork:(DMNetwork *)network;
 - (void)_scanningDidEnd;
 
+void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token);
+
 @end
 
 static DMNetworksManager *_sharedInstance = nil;
@@ -62,9 +64,6 @@ static DMNetworksManager *_sharedInstance = nil;
     // Prevent initiating a scan when we're already scanning.
     if (_scanning == YES)
         return;
-
-    NSLog(@"reloadNetworks");
-
 
     _scanning = YES;
 

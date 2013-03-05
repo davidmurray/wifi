@@ -31,6 +31,7 @@ extern "C" {
     extern Boolean WiFiNetworkIsWEP(WiFiNetworkRef network);
     extern Boolean WiFiNetworkIsWPA(WiFiNetworkRef network);
     extern Boolean WiFiNetworkIsEAP(WiFiNetworkRef network);
+    extern Boolean WiFiNetworkIsApplePersonalHotspot(WiFiNetworkRef network);
     extern CFDateRef WiFiNetworkGetLastAssociationDate(WiFiNetworkRef network);
 
     extern CFPropertyListRef WiFiDeviceClientCopyProperty(WiFiDeviceClientRef client, CFStringRef property);

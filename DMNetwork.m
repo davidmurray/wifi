@@ -13,6 +13,7 @@
 @synthesize RSSI            = _RSSI;
 @synthesize encryptionModel = _encryptionModel;
 @synthesize channel         = _channel;
+@synthesize isAppleHotspot  = _isAppleHotspot;
 
 - (id)initWithNetwork:(WiFiNetworkRef)network
 {
@@ -69,8 +70,6 @@
         [self setEncryptionModel:@"WEP"];
     else if (WiFiNetworkIsWPA(_network))
         [self setEncryptionModel:@"WPA"];
-    else if (WiFiNetworkIsEAP(_network))
-        [self setEncryptionModel:@"EAP"];
     else
         [self setEncryptionModel:@"None"];
 
@@ -82,6 +81,11 @@
     CFNumberGetValue(networkChannel, kCFNumberIntType, &channel);
 
     [self setChannel:channel];
+
+    // Apple Hotspot
+
+    BOOL isAppleHotspot = WiFiNetworkIsApplePersonalHotspot(_network);
+    [self setIsAppleHotspot:isAppleHotspot];
 }
 
 @end
