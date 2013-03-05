@@ -9,11 +9,12 @@
 #import "DMNetwork.h"
 
 @implementation DMNetwork
-@synthesize SSID            = _SSID;
-@synthesize RSSI            = _RSSI;
-@synthesize encryptionModel = _encryptionModel;
-@synthesize channel         = _channel;
-@synthesize isAppleHotspot  = _isAppleHotspot;
+@synthesize SSID             = _SSID;
+@synthesize RSSI             = _RSSI;
+@synthesize encryptionModel  = _encryptionModel;
+@synthesize channel          = _channel;
+@synthesize isAppleHotspot   = _isAppleHotspot;
+@synthesize isCurrentNetwork = _isCurrentNetwork;
 
 - (id)initWithNetwork:(WiFiNetworkRef)network
 {
@@ -29,6 +30,7 @@
 - (void)dealloc
 {
     [_SSID release];
+    [_encryptionModel release];
     CFRelease(_network);
 
     [super dealloc];

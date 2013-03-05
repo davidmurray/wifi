@@ -16,6 +16,7 @@
     float          _RSSI;
     int            _channel;
     BOOL           _isAppleHotspot;
+    BOOL           _isCurrentNetwork;
 }
 
 @property(nonatomic, copy) NSString *SSID;
@@ -23,6 +24,7 @@
 @property(nonatomic, assign) float RSSI;
 @property(nonatomic, assign) int channel;
 @property(nonatomic, assign) BOOL isAppleHotspot;
+@property(nonatomic, assign) BOOL isCurrentNetwork;
 
 - (id)initWithNetwork:(WiFiNetworkRef)network;
 - (void)populateData;

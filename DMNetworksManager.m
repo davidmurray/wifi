@@ -14,6 +14,7 @@
 - (void)_clearNetworks;
 - (void)_addNetwork:(DMNetwork *)network;
 - (void)_scanningDidEnd;
+- (WiFiNetworkRef)_currentNetwork;
 
 void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token);
 
@@ -70,6 +71,15 @@ static DMNetworksManager *_sharedInstance = nil;
     // Post a notification to tell the controller that scanning has started.
     [[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidStartScanning object:nil];
 
+    if (_currentNetwork) {
+        CFRelease(_currentNetwork);
+        _currentNetwork = nil;
+    }
+
+    // Get the current network.
+    _currentNetwork = WiFiDeviceClientCopyCurrentNetwork(_client);
+
+    // Initiate a scan.
     [self _scan];
 }
 
@@ -125,23 +135,33 @@ static DMNetworksManager *_sharedInstance = nil;
     WiFiManagerClientUnscheduleFromRunLoop(_manager);
 }
 
+- (WiFiNetworkRef)_currentNetwork
+{
+    return _currentNetwork;
+}
+
 void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token)
 {
-    [[DMNetworksManager sharedInstance] _clearNetworks];
+    DMNetworksManager *manager = [DMNetworksManager sharedInstance];
+
+    [manager _clearNetworks];
 
     for (unsigned x = 0; x < CFArrayGetCount(results); x++) {
         WiFiNetworkRef networkRef = (WiFiNetworkRef)CFArrayGetValueAtIndex(results, x);
 
         DMNetwork *network = [[DMNetwork alloc] initWithNetwork:networkRef];
-
         [network populateData];
 
-        [[DMNetworksManager sharedInstance] _addNetwork:network];
+        // This check might not be the most reliable.
+        if ([[network SSID] isEqualToString:(NSString *)WiFiNetworkGetSSID([manager _currentNetwork])])
+            [network setIsCurrentNetwork:YES];
+
+        [manager _addNetwork:network];
 
         [network release];
     }
 
-    [[DMNetworksManager sharedInstance] _scanningDidEnd];
+    [manager _scanningDidEnd];
 }
 
 @end

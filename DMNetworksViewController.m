@@ -70,7 +70,7 @@ void receivedNotification(CFNotificationCenterRef center, void *observer, CFStri
 
         _numberOfSections = 1;
 
-        [[self tableView] deleteSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationAutomatic];
+        [[self tableView] deleteSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationLeft];
         [[self tableView] endUpdates];
     }
 
@@ -91,7 +91,7 @@ void receivedNotification(CFNotificationCenterRef center, void *observer, CFStri
 
         _numberOfSections = 2;
 
-        [[self tableView] insertSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationAutomatic];
+        [[self tableView] insertSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationLeft];
         [[self tableView] endUpdates];
     }
 
@@ -113,7 +113,7 @@ void receivedNotification(CFNotificationCenterRef center, void *observer, CFStri
 
             _numberOfSections = 1;
 
-            [[self tableView] deleteSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationAutomatic];
+            [[self tableView] deleteSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationLeft];
             [[self tableView] endUpdates];
         }
     }
@@ -181,6 +181,10 @@ void receivedNotification(CFNotificationCenterRef center, void *observer, CFStri
 
             [[cell textLabel] setText:[network SSID]];
             [[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [network RSSI]]];
+
+            // Display the text in blue if we are currently connected to that network.
+            if ([network isCurrentNetwork])
+                [[cell textLabel] setTextColor:[UIColor colorWithRed:0 green:0 blue:0.7 alpha:1]];
 
             break;
         }

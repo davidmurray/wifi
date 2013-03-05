@@ -16,6 +16,7 @@
 @interface DMNetworksManager : NSObject {
     WiFiManagerRef      _manager;
     WiFiDeviceClientRef _client;
+    WiFiNetworkRef      _currentNetwork;
     BOOL                _scanning;
     NSMutableArray      *_networks;
 }
