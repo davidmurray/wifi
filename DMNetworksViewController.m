@@ -91,7 +91,7 @@ void receivedNotification(CFNotificationCenterRef center, void *observer, CFStri
 
         _numberOfSections = 2;
 
-        [[self tableView] insertSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationLeft];
+        [[self tableView] insertSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationRight];
         [[self tableView] endUpdates];
     }
 
