@@ -183,8 +183,9 @@ void receivedNotification(CFNotificationCenterRef center, void *observer, CFStri
             [[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [network RSSI]]];
 
             // Display the text in blue if we are currently connected to that network.
+            // Temporary.
             if ([network isCurrentNetwork])
-                [[cell textLabel] setTextColor:[UIColor colorWithRed:0 green:0 blue:0.7 alpha:1]];
+                [[cell textLabel] setTextColor:[UIColor redColor]];
 
             break;
         }

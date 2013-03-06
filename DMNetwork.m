@@ -39,8 +39,9 @@
 
 - (NSString *)description
 {
-    return [NSString stringWithFormat:@"[%@] SSID: %@ RSSI: %f", self, [self SSID], [self RSSI]];
+    return [NSString stringWithFormat:@"SSID: %@ RSSI: %f Encryption Model: %@ Channel: %i AppleHotspot: %i CurrentNetwork: %i", [self SSID], [self RSSI], [self encryptionModel], [self channel], [self isAppleHotspot], [self isCurrentNetwork]];
 }
+
 
 - (void)populateData
 {
