@@ -218,13 +218,15 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    DMInformationViewController *informationViewController = [[DMInformationViewController alloc] initWithStyle:UITableViewStyleGrouped];
+    if ([indexPath section] == 0 && [indexPath row] == 1) {
+        DMInformationViewController *informationViewController = [[DMInformationViewController alloc] initWithStyle:UITableViewStyleGrouped];
 
-    [[self navigationController] pushViewController:informationViewController animated:YES];
+        [[self navigationController] pushViewController:informationViewController animated:YES];
 
-    [informationViewController release];
+        [informationViewController release];
 
-    [tableView deselectRowAtIndexPath:indexPath animated:YES];
+        [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    }
 }
 
 @end
