@@ -13,6 +13,7 @@
     WiFiNetworkRef _network;
     NSString       *_SSID;
     NSString       *_encryptionModel;
+    NSString       *_BSSID;
     float          _RSSI;
     int            _channel;
     BOOL           _isAppleHotspot;
@@ -21,6 +22,7 @@
 
 @property(nonatomic, copy) NSString *SSID;
 @property(nonatomic, copy) NSString *encryptionModel;
+@property(nonatomic, copy) NSString *BSSID;
 @property(nonatomic, assign) float RSSI;
 @property(nonatomic, assign) int channel;
 @property(nonatomic, assign) BOOL isAppleHotspot;

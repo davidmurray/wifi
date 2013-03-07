@@ -16,8 +16,6 @@
 - (void)enabledSwitchChanged:(UISwitch *)aSwitch;
 - (void)powerStateDidChange;
 
-void receivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo);
-
 @end
 
 @implementation DMNetworksViewController
@@ -29,8 +27,6 @@ void receivedNotification(CFNotificationCenterRef center, void *observer, CFStri
     if (self) {
 
         _numberOfSections = 1;
-
-        CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, receivedNotification, CFSTR("com.apple.wifi.powerstatedidchange"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managerDidBeginScanning) name:kDMNetworksManagerDidStartScanning object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managerDidFinishScanning) name:kDMNetworksManagerDidFinishScanning object:nil];
@@ -58,7 +54,6 @@ void receivedNotification(CFNotificationCenterRef center, void *observer, CFStri
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(), receivedNotification, NULL, NULL);
 
     [super dealloc];
 }
@@ -144,7 +139,7 @@ void receivedNotification(CFNotificationCenterRef center, void *observer, CFStri
 
     switch (section) {
         case 0:
-            return 1;
+            return 2;
         case 1:
             return [[[DMNetworksManager sharedInstance] networks] count];
         default:
@@ -164,16 +159,27 @@ void receivedNotification(CFNotificationCenterRef center, void *observer, CFStri
     }
 
     switch ([indexPath section]) {
+
         case 0: {
-            [[cell textLabel] setText:@"WiFi"];
+            if ([indexPath row] == 0) {
+                [[cell textLabel] setText:@"WiFi"];
+                [[cell textLabel] setTextColor:[UIColor blackColor]];
 
-            _switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
-            [cell setAccessoryView:_switchView];
-            [_switchView setOn:[[DMNetworksManager sharedInstance] isWiFiEnabled] animated:NO];
-            [_switchView addTarget:self action:@selector(enabledSwitchChanged:) forControlEvents:UIControlEventValueChanged];
-            [_switchView release];
+                _switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
+                [cell setAccessoryView:_switchView];
+                [_switchView setOn:[[DMNetworksManager sharedInstance] isWiFiEnabled] animated:NO];
+                [_switchView addTarget:self action:@selector(enabledSwitchChanged:) forControlEvents:UIControlEventValueChanged];
+                [_switchView release];
 
-            break;
+                break;
+            } else {
+                [[cell textLabel] setText:@"Information"];
+                [[cell textLabel] setTextColor:[UIColor blackColor]];
+                [cell setSelectionStyle:UITableViewCellSelectionStyleBlue];
+                [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
+
+                break;
+            }
         }
 
         case 1: {
@@ -181,11 +187,14 @@ void receivedNotification(CFNotificationCenterRef center, void *observer, CFStri
 
             [[cell textLabel] setText:[network SSID]];
             [[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [network RSSI]]];
+            [cell setAccessoryType:UITableViewCellAccessoryDetailDisclosureButton];
 
-            // Display the text in blue if we are currently connected to that network.
+            // Display the text in red if we are currently connected to that network.
             // Temporary.
             if ([network isCurrentNetwork])
                 [[cell textLabel] setTextColor:[UIColor redColor]];
+            else
+                [[cell textLabel] setTextColor:[UIColor blackColor]];
 
             break;
         }
@@ -207,11 +216,15 @@ void receivedNotification(CFNotificationCenterRef center, void *observer, CFStri
     [detailViewController release];
 }
 
-#pragma mark - C Functions
-
-void receivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    [[NSNotificationCenter defaultCenter] postNotificationName:kDMWiFiPowerStateDidChange object:nil];
+    DMInformationViewController *informationViewController = [[DMInformationViewController alloc] initWithStyle:UITableViewStyleGrouped];
+
+    [[self navigationController] pushViewController:informationViewController animated:YES];
+
+    [informationViewController release];
+
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
 @end

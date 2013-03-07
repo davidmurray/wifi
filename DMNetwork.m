@@ -12,6 +12,7 @@
 @synthesize SSID             = _SSID;
 @synthesize RSSI             = _RSSI;
 @synthesize encryptionModel  = _encryptionModel;
+@synthesize BSSID            = _BSSID;
 @synthesize channel          = _channel;
 @synthesize isAppleHotspot   = _isAppleHotspot;
 @synthesize isCurrentNetwork = _isCurrentNetwork;
@@ -31,6 +32,7 @@
 {
     [_SSID release];
     [_encryptionModel release];
+    [_BSSID release];
     CFRelease(_network);
 
     [super dealloc];
@@ -89,6 +91,11 @@
 
     BOOL isAppleHotspot = WiFiNetworkIsApplePersonalHotspot(_network);
     [self setIsAppleHotspot:isAppleHotspot];
+
+    // BSSID
+
+    NSString *BSSID = (NSString *)WiFiNetworkGetProperty(_network, CFSTR("BSSID"));
+    [self setBSSID:BSSID];
 }
 
 @end

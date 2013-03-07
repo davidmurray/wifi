@@ -56,7 +56,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     // Return the number of rows in the section.
-    return 3;
+    return 4;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -81,6 +81,10 @@
         } case 2: {
             [[cell textLabel] setText:@"Apple Personal Hotspot"];
             [[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isAppleHotspot] == YES ? @"Yes" : @"No")]];
+            break;
+        } case 3: {
+            [[cell textLabel] setText:@"Mac Address"];
+            [[cell detailTextLabel] setText:[_network BSSID]];
             break;
         }
     }

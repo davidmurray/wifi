@@ -17,6 +17,7 @@
 - (WiFiNetworkRef)_currentNetwork;
 
 void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token);
+void receivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo);
 
 @end
 
@@ -55,6 +56,8 @@ static DMNetworksManager *_sharedInstance = nil;
 - (void)dealloc
 {
     CFRelease(_manager);
+    CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(), receivedNotification, NULL, NULL);
+
     [self _clearNetworks];
 
     [super dealloc];
@@ -100,6 +103,11 @@ static DMNetworksManager *_sharedInstance = nil;
     CFBooleanRef value = (enabled ? kCFBooleanTrue : kCFBooleanFalse);
 
     WiFiManagerClientSetProperty(_manager, CFSTR("AllowEnable"), value);
+}
+
+- (NSString *)interfaceName
+{
+    return (NSString *)WiFiDeviceClientGetInterfaceName(_client);
 }
 
 #pragma mark - Private APIs
@@ -166,6 +174,11 @@ void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef e
     }
 
     [manager _scanningDidEnd];
+}
+
+void receivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+{
+    [[NSNotificationCenter defaultCenter] postNotificationName:kDMWiFiPowerStateDidChange object:nil];
 }
 
 @end

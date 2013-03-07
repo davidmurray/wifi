@@ -38,6 +38,7 @@ extern "C" {
     extern WiFiNetworkRef WiFiDeviceClientCopyCurrentNetwork(WiFiDeviceClientRef client);
     extern int WiFiDeviceClientGetPower(WiFiDeviceClientRef client);
     extern void WiFiDeviceClientScanAsync(WiFiDeviceClientRef device, CFDictionaryRef dict, WiFiManagerScanCallback callback, uint32_t flags);
+    extern CFStringRef WiFiDeviceClientGetInterfaceName(WiFiDeviceClientRef client);
 
     extern CFStringRef kWiFiATJTestModeEnabledKey;
     extern CFStringRef kWiFiDeviceCapabilitiesKey;

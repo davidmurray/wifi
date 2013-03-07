@@ -9,8 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "DMNetworksManager.h"
 #import "DMDetailViewController.h"
-
-#define kDMWiFiPowerStateDidChange @"DMWiFiPowerStateDidChange"
+#import "DMInformationViewController.h"
 
 @interface UIProgressHUD : UIView
 - (id)initWithFrame:(CGRect)frame;

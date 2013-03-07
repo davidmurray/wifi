@@ -10,8 +10,9 @@
 #import "MobileWiFi.h"
 #import "DMNetwork.h"
 
-#define kDMNetworksManagerDidStartScanning @"DMNetworksManagerDidStartScanning"
+#define kDMNetworksManagerDidStartScanning  @"DMNetworksManagerDidStartScanning"
 #define kDMNetworksManagerDidFinishScanning @"DMNetworksManagerDidFinishScanning"
+#define kDMWiFiPowerStateDidChange          @"DMWiFiPowerStateDidChange"
 
 @interface DMNetworksManager : NSObject {
     WiFiManagerRef      _manager;
@@ -27,5 +28,6 @@
 
 + (id)sharedInstance;
 - (void)reloadNetworks;
+- (NSString *)interfaceName;
 
 @end
