@@ -18,6 +18,8 @@
     int            _channel;
     BOOL           _isAppleHotspot;
     BOOL           _isCurrentNetwork;
+    BOOL           _isAdHoc;
+    BOOL           _isHidden;
 }
 
 @property(nonatomic, copy) NSString *SSID;
@@ -27,6 +29,8 @@
 @property(nonatomic, assign) int channel;
 @property(nonatomic, assign) BOOL isAppleHotspot;
 @property(nonatomic, assign) BOOL isCurrentNetwork;
+@property(nonatomic, assign) BOOL isAdHoc;
+@property(nonatomic, assign) BOOL isHidden;
 
 - (id)initWithNetwork:(WiFiNetworkRef)network;
 - (void)populateData;

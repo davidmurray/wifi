@@ -13,6 +13,7 @@
 #define kDMNetworksManagerDidStartScanning  @"DMNetworksManagerDidStartScanning"
 #define kDMNetworksManagerDidFinishScanning @"DMNetworksManagerDidFinishScanning"
 #define kDMWiFiPowerStateDidChange          @"DMWiFiPowerStateDidChange"
+#define kDMWiFiLinkDidChange                @"DMWiFiLinkDidChange"
 
 @interface DMNetworksManager : NSObject {
     WiFiManagerRef      _manager;

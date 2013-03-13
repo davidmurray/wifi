@@ -25,6 +25,7 @@
     UIBarButtonItem *_scanButton;
     UISwitch        *_switchView;
     long            _numberOfSections;
+    NSBundle        *_airPortSettingsBundle;
 }
 
 @end

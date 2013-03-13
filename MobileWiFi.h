@@ -13,6 +13,8 @@ extern "C" {
 
     typedef void (*WiFiManagerScanCallback)(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token);
 
+    // WiFi manager functions.
+
     extern WiFiManagerRef WiFiManagerClientCreate(CFAllocatorRef allocator, int flags);
     extern CFArrayRef WiFiManagerClientCopyDevices(WiFiManagerRef manager);
     extern CFArrayRef WiFiManagerClientCopyNetworks(WiFiManagerRef manager);
@@ -21,6 +23,14 @@ extern "C" {
     extern void WiFiManagerClientUnscheduleFromRunLoop(WiFiManagerRef manager);
     extern void WiFiManagerClientSetProperty(WiFiManagerRef manager, CFStringRef property, CFPropertyListRef value);
     extern CFPropertyListRef WiFiManagerClientCopyProperty(WiFiManagerRef manager, CFStringRef property);
+    // MIS is WiFi tethering.
+    extern int WiFiManagerClientGetMISState(WiFiManagerRef manager);
+    extern void WiFiManagerClientSetMISState(WiFiManagerRef manager, int state);
+    extern void WiFiManagerClientSetMisPassword(WiFiManagerRef manager, CFStringRef password);
+    extern void WiFiManagerClientSetMISDiscoveryState(WiFiManagerRef manager, int state);
+    extern int WiFiManagerClientGetMISDiscoveryState(WiFiManagerRef manager);
+
+    // WiFi network functions.
 
     extern CFPropertyListRef WiFiNetworkGetProperty(WiFiNetworkRef network, CFStringRef property);
     extern int WiFiNetworkGetIntProperty(WiFiNetworkRef network, CFStringRef property);
@@ -32,7 +42,11 @@ extern "C" {
     extern Boolean WiFiNetworkIsWPA(WiFiNetworkRef network);
     extern Boolean WiFiNetworkIsEAP(WiFiNetworkRef network);
     extern Boolean WiFiNetworkIsApplePersonalHotspot(WiFiNetworkRef network);
+    extern Boolean WiFiNetworkIsAdHoc(WiFiNetworkRef network);
+    extern Boolean WiFiNetworkIsHidden(WiFiNetworkRef network);
     extern CFDateRef WiFiNetworkGetLastAssociationDate(WiFiNetworkRef network);
+
+    // WiFi device client functions.
 
     extern CFPropertyListRef WiFiDeviceClientCopyProperty(WiFiDeviceClientRef client, CFStringRef property);
     extern WiFiNetworkRef WiFiDeviceClientCopyCurrentNetwork(WiFiDeviceClientRef client);

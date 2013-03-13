@@ -15,6 +15,7 @@
 - (void)managerDidFinishScanning;
 - (void)enabledSwitchChanged:(UISwitch *)aSwitch;
 - (void)powerStateDidChange;
+- (void)linkDidChange;
 
 @end
 
@@ -31,9 +32,12 @@
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managerDidBeginScanning) name:kDMNetworksManagerDidStartScanning object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managerDidFinishScanning) name:kDMNetworksManagerDidFinishScanning object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(powerStateDidChange) name:kDMWiFiPowerStateDidChange object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(linkDidChange) name:kDMWiFiLinkDidChange object:nil];
 
         if ([[DMNetworksManager sharedInstance] isWiFiEnabled])
             [self scanTapped];
+
+        _airPortSettingsBundle = [NSBundle bundleWithPath:@"/System/Library/PreferenceBundles/AirPortSettings.bundle"];
     }
 
     return self;
@@ -114,6 +118,11 @@
     }
 }
 
+- (void)linkDidChange
+{
+    NSLog(@"link did change");
+}
+
 - (void)powerStateDidChange
 {
     BOOL wiFiEnabled = [[DMNetworksManager sharedInstance] isWiFiEnabled];
@@ -189,12 +198,12 @@
             [[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [network RSSI]]];
             [cell setAccessoryType:UITableViewCellAccessoryDetailDisclosureButton];
 
-            // Display the text in red if we are currently connected to that network.
-            // Temporary.
+            // Display a checkmark icon if we are currently connected to that network.
+
             if ([network isCurrentNetwork])
-                [[cell textLabel] setTextColor:[UIColor redColor]];
+                [[cell imageView] setImage:[UIImage imageWithContentsOfFile:[_airPortSettingsBundle pathForResource:@"BlueCheck@2x" ofType:@"png"]]];
             else
-                [[cell textLabel] setTextColor:[UIColor blackColor]];
+                [[cell imageView] setImage:[UIImage imageWithContentsOfFile:[_airPortSettingsBundle pathForResource:@"spacer@2x" ofType:@"png"]]];
 
             break;
         }

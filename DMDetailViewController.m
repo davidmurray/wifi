@@ -56,7 +56,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     // Return the number of rows in the section.
-    return 4;
+    return 6;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -85,6 +85,14 @@
         } case 3: {
             [[cell textLabel] setText:@"Mac Address"];
             [[cell detailTextLabel] setText:[_network BSSID]];
+            break;
+        } case 4: {
+            [[cell textLabel] setText:@"Ad Hoc"];
+            [[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isAdHoc] == YES ? @"Yes" : @"No")]];
+            break;
+        } case 5: {
+            [[cell textLabel] setText:@"Hidden"];
+            [[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isHidden] == YES ? @"Yes" : @"No")]];
             break;
         }
     }

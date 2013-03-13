@@ -48,6 +48,9 @@ static DMNetworksManager *_sharedInstance = nil;
         _client = (WiFiDeviceClientRef)CFArrayGetValueAtIndex(devices, 0);
 
         CFRelease(devices);
+
+        CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, receivedNotification, CFSTR("com.apple.wifi.powerstatedidchange"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+        CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, receivedNotification, CFSTR("com.apple.wifi.linkdidchange"), NULL, CFNotificationSuspensionBehaviorCoalesce);
     }
 
     return self;
@@ -178,7 +181,10 @@ void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef e
 
 void receivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
-    [[NSNotificationCenter defaultCenter] postNotificationName:kDMWiFiPowerStateDidChange object:nil];
+    if ([(NSString *)name isEqualToString:@"com.apple.wifi.powerstatedidchange"])
+        [[NSNotificationCenter defaultCenter] postNotificationName:kDMWiFiPowerStateDidChange object:nil];
+    else if ([(NSString *)name isEqualToString:@"com.apple.wifi.linkdidchange"])
+        [[NSNotificationCenter defaultCenter] postNotificationName:kDMWiFiLinkDidChange object:nil];
 }
 
 @end

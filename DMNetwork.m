@@ -16,6 +16,8 @@
 @synthesize channel          = _channel;
 @synthesize isAppleHotspot   = _isAppleHotspot;
 @synthesize isCurrentNetwork = _isCurrentNetwork;
+@synthesize isAdHoc          = _isAdhoc;
+@synthesize isHidden         = _isHidden;
 
 - (id)initWithNetwork:(WiFiNetworkRef)network
 {
@@ -41,7 +43,7 @@
 
 - (NSString *)description
 {
-    return [NSString stringWithFormat:@"SSID: %@ RSSI: %f Encryption Model: %@ Channel: %i AppleHotspot: %i CurrentNetwork: %i", [self SSID], [self RSSI], [self encryptionModel], [self channel], [self isAppleHotspot], [self isCurrentNetwork]];
+    return [NSString stringWithFormat:@"SSID: %@ RSSI: %f Encryption Model: %@ Channel: %i AppleHotspot: %i CurrentNetwork: %i BSSID: %@ AdHoc: %i Hidden: %i", [self SSID], [self RSSI], [self encryptionModel], [self channel], [self isAppleHotspot], [self isCurrentNetwork], [self BSSID], [self isAdHoc], [self isHidden]];
 }
 
 
@@ -96,6 +98,16 @@
 
     NSString *BSSID = (NSString *)WiFiNetworkGetProperty(_network, CFSTR("BSSID"));
     [self setBSSID:BSSID];
+
+    // AdHoc
+
+    BOOL isAdHoc = WiFiNetworkIsAdHoc(_network);
+    [self setIsAdHoc:isAdHoc];
+
+    // Hidden
+
+    BOOL isHidden = WiFiNetworkIsHidden(_network);
+    [self setIsHidden:isHidden];
 }
 
 @end
