@@ -16,6 +16,7 @@
     NSString       *_BSSID;
     float          _RSSI;
     int            _channel;
+    int            _APMode;
     BOOL           _isAppleHotspot;
     BOOL           _isCurrentNetwork;
     BOOL           _isAdHoc;
@@ -27,6 +28,7 @@
 @property(nonatomic, copy) NSString *BSSID;
 @property(nonatomic, assign) float RSSI;
 @property(nonatomic, assign) int channel;
+@property(nonatomic, assign) int APMode;
 @property(nonatomic, assign) BOOL isAppleHotspot;
 @property(nonatomic, assign) BOOL isCurrentNetwork;
 @property(nonatomic, assign) BOOL isAdHoc;

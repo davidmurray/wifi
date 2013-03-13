@@ -14,6 +14,7 @@
 @synthesize encryptionModel  = _encryptionModel;
 @synthesize BSSID            = _BSSID;
 @synthesize channel          = _channel;
+@synthesize APMode           = _APMode;
 @synthesize isAppleHotspot   = _isAppleHotspot;
 @synthesize isCurrentNetwork = _isCurrentNetwork;
 @synthesize isAdHoc          = _isAdhoc;
@@ -108,6 +109,11 @@
 
     BOOL isHidden = WiFiNetworkIsHidden(_network);
     [self setIsHidden:isHidden];
+
+    // AP Mode
+
+    int APMode = [(NSNumber *)WiFiNetworkGetProperty(_network, CFSTR("AP_MODE")) intValue];
+    [self setAPMode:APMode];
 }
 
 @end

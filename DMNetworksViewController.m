@@ -69,7 +69,7 @@
 
         _numberOfSections = 1;
 
-        [[self tableView] deleteSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationLeft];
+        [[self tableView] deleteSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationAutomatic];
         [[self tableView] endUpdates];
     }
 
@@ -90,12 +90,15 @@
 
         _numberOfSections = 2;
 
-        [[self tableView] insertSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationRight];
+        [[self tableView] insertSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationAutomatic];
         [[self tableView] endUpdates];
     }
 
     [_hud hide];
     [_hud release];
+
+    // Display the number of networks in the navigation bar.
+    [self setTitle:[NSString stringWithFormat:@"Networks (%u)", [[[DMNetworksManager sharedInstance] networks] count]]];
 }
 
 - (void)enabledSwitchChanged:(UISwitch *)aSwitch
@@ -112,7 +115,7 @@
 
             _numberOfSections = 1;
 
-            [[self tableView] deleteSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationLeft];
+            [[self tableView] deleteSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationAutomatic];
             [[self tableView] endUpdates];
         }
     }
@@ -158,7 +161,7 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    static NSString *CellIdentifier = @"Cell";
+    static NSString *CellIdentifier = @"WiFiCellIdentifier";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
 
     if (cell == nil) {
@@ -168,11 +171,12 @@
     }
 
     switch ([indexPath section]) {
-
         case 0: {
             if ([indexPath row] == 0) {
                 [[cell textLabel] setText:@"WiFi"];
                 [[cell textLabel] setTextColor:[UIColor blackColor]];
+                [[cell detailTextLabel] setText:nil];
+                [[cell imageView] setImage:nil];
 
                 _switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
                 [cell setAccessoryView:_switchView];
@@ -184,8 +188,12 @@
             } else {
                 [[cell textLabel] setText:@"Information"];
                 [[cell textLabel] setTextColor:[UIColor blackColor]];
+                [[cell detailTextLabel] setText:nil];
+                [[cell imageView] setImage:nil];
                 [cell setSelectionStyle:UITableViewCellSelectionStyleBlue];
                 [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
+                [cell setAccessoryView:nil];
+
 
                 break;
             }
@@ -197,6 +205,7 @@
             [[cell textLabel] setText:[network SSID]];
             [[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [network RSSI]]];
             [cell setAccessoryType:UITableViewCellAccessoryDetailDisclosureButton];
+            [cell setAccessoryView:nil];
 
             // Display a checkmark icon if we are currently connected to that network.
 
