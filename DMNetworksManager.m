@@ -134,7 +134,7 @@ static DMNetworksManager *_sharedInstance = nil;
 
 - (void)_scanningDidEnd
 {
-    // Reverse the array so that networks with the highest signal strenght go to the top.
+    // Reverse the array so that networks with the highest signal strength go to the top.
     NSArray *tempNetworks = [[_networks reverseObjectEnumerator] allObjects];
     [_networks removeAllObjects];
     [_networks addObjectsFromArray:tempNetworks];
