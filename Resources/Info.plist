@@ -1,7 +1,7 @@
 {
 	CFBundleExecutable = WiFi;
 	CFBundleIconFile = "icon.png";
-	CFBundleIdentifier = "com.yourcompany.wifi";
+	CFBundleIdentifier = "me.cykey.wifi";
 	"CFBundleInfoDictionaryVersion" = "6.0";
 	CFBundlePackageType = APPL;
 	CFBundleSignature = "????";
