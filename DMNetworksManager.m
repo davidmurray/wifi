@@ -167,9 +167,14 @@ void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef e
         DMNetwork *network = [[DMNetwork alloc] initWithNetwork:networkRef];
         [network populateData];
 
-        // This check might not be the most reliable.
-        if ([[network SSID] isEqualToString:(NSString *)WiFiNetworkGetSSID([manager _currentNetwork])])
-            [network setIsCurrentNetwork:YES];
+
+        WiFiNetworkRef currentNetwork = [manager _currentNetwork];
+        // WiFiNetworkGetSSID() crashes if the network parameter is NULL therefore we need to check if it exists first.
+        if (currentNetwork) {
+            // This check might not be the most reliable.
+            if ([[network SSID] isEqualToString:(NSString *)WiFiNetworkGetSSID(currentNetwork)])
+                [network setIsCurrentNetwork:YES];
+        }
 
         [manager _addNetwork:network];
 
