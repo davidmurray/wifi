@@ -158,6 +158,9 @@ static DMNetworksManager *_sharedInstance = nil;
 
 void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token)
 {
+    if (error)
+        NSLog(@"[scanCallback] Error: %@", error);
+
     DMNetworksManager *manager = [DMNetworksManager sharedInstance];
     [manager _clearNetworks];
 
@@ -166,7 +169,6 @@ void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef e
 
         DMNetwork *network = [[DMNetwork alloc] initWithNetwork:networkRef];
         [network populateData];
-
 
         WiFiNetworkRef currentNetwork = [manager _currentNetwork];
         // WiFiNetworkGetSSID() crashes if the network parameter is NULL therefore we need to check if it exists first.
