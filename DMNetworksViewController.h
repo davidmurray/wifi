@@ -21,11 +21,12 @@
 @end
 
 @interface DMNetworksViewController : UITableViewController {
-    UIProgressHUD   *_hud;
-    UIBarButtonItem *_scanButton;
-    UISwitch        *_switchView;
-    long            _numberOfSections;
-    NSBundle        *_airPortSettingsBundle;
+    UIProgressHUD           *_hud;
+    UIBarButtonItem         *_scanButton;
+    UISwitch                *_switchView;
+    UIActivityIndicatorView *_spinner;
+    long                    _numberOfSections;
+    NSBundle                *_airPortSettingsBundle;
 }
 
 @end

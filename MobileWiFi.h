@@ -9,9 +9,10 @@ extern "C" {
     typedef struct __WiFiDeviceClient *WiFiDeviceClientRef;
     typedef struct __WiFiNetwork      *WiFiNetworkRef;
     typedef struct __WiFiManager      *WiFiManagerRef;
-    typedef CFErrorRef WiFiErrorRef;
+    typedef struct __WiFiError        *WiFiErrorRef;
 
-    typedef void (*WiFiManagerScanCallback)(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token);
+    typedef void (*WiFiDeviceScanCallback)(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token);
+    typedef void (*WiFiDeviceAssociateCallback)(WiFiDeviceClientRef device, WiFiNetworkRef network, CFDictionaryRef dict, WiFiErrorRef error, void *token);
 
     // WiFi manager functions.
 
@@ -36,6 +37,7 @@ extern "C" {
     extern int WiFiNetworkGetIntProperty(WiFiNetworkRef network, CFStringRef property);
     extern float WiFiNetworkGetFloatProperty(WiFiNetworkRef network, CFStringRef property);
     extern CFStringRef WiFiNetworkCopyPassword(WiFiNetworkRef);
+    extern void WiFiNetworkSetPassword(WiFiNetworkRef network, CFStringRef password);
     extern CFStringRef WiFiNetworkGetSSID(WiFiNetworkRef network);
     extern float WiFiNetworkGetNetworkUsage(WiFiNetworkRef network);
     extern Boolean WiFiNetworkIsWEP(WiFiNetworkRef network);
@@ -51,7 +53,9 @@ extern "C" {
     extern CFPropertyListRef WiFiDeviceClientCopyProperty(WiFiDeviceClientRef client, CFStringRef property);
     extern WiFiNetworkRef WiFiDeviceClientCopyCurrentNetwork(WiFiDeviceClientRef client);
     extern int WiFiDeviceClientGetPower(WiFiDeviceClientRef client);
-    extern void WiFiDeviceClientScanAsync(WiFiDeviceClientRef device, CFDictionaryRef dict, WiFiManagerScanCallback callback, uint32_t flags);
+    extern void WiFiDeviceClientScanAsync(WiFiDeviceClientRef device, CFDictionaryRef dict, WiFiDeviceScanCallback callback, uint32_t flags);
+    extern void WiFiDeviceClientAssociateAsync(WiFiDeviceClientRef client, WiFiNetworkRef network, WiFiDeviceAssociateCallback callback, CFDictionaryRef dict);
+    extern void WiFiDeviceClientAssociateCancel(WiFiDeviceClientRef client);
     extern CFStringRef WiFiDeviceClientGetInterfaceName(WiFiDeviceClientRef client);
 
     extern CFStringRef kWiFiATJTestModeEnabledKey;

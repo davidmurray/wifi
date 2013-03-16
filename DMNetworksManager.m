@@ -14,9 +14,11 @@
 - (void)_clearNetworks;
 - (void)_addNetwork:(DMNetwork *)network;
 - (void)_scanningDidEnd;
+- (void)_associationDidEnd;
 - (WiFiNetworkRef)_currentNetwork;
 
 void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token);
+void associationCallback(WiFiDeviceClientRef device, WiFiNetworkRef networkRef, CFDictionaryRef dict, WiFiErrorRef error, void *token);
 void receivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo);
 
 @end
@@ -89,6 +91,28 @@ static DMNetworksManager *_sharedInstance = nil;
     [self _scan];
 }
 
+- (void)associateWithNetwork:(DMNetwork *)network
+{
+    // Prevent initiating an association if we're already associating.
+    if (_associating == YES)
+        return;
+
+    _associating = YES;
+
+    WiFiManagerClientScheduleWithRunLoop(_manager, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+
+    WiFiNetworkRef net = [network networkRef];
+
+    if (net) {
+        WiFiNetworkSetPassword(net, CFSTR("PASS_GOES_HERE"));
+        WiFiDeviceClientAssociateAsync(_client, net, associationCallback, NULL);
+        [network setIsAssociating:YES];
+    }
+
+    // Post a notification to tell the controller that association has started.
+    [[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidStartAssociating object:nil];
+}
+
 - (BOOL)isWiFiEnabled
 {
     CFBooleanRef enabled = WiFiManagerClientCopyProperty(_manager, CFSTR("AllowEnable"));
@@ -147,14 +171,32 @@ static DMNetworksManager *_sharedInstance = nil;
     // Post a notification to tell the controller that scanning has finished.
     [[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidFinishScanning object:nil];
 
-    // GTFO THE RUN LOOP
+    // GTFO THE RUN LOOP.
     WiFiManagerClientUnscheduleFromRunLoop(_manager);
+}
+
+- (void)_associationDidEnd
+{
+    WiFiManagerClientUnscheduleFromRunLoop(_manager);
+
+    for (DMNetwork *network in [[DMNetworksManager sharedInstance] networks]) {
+        if ([network isAssociating]) {
+            [network setIsAssociating:NO];
+        }
+    }
+
+    _associating = NO;
+
+    // Post a notification to tell the controller that association has finished.
+    [[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidFinishAssociating object:nil];
 }
 
 - (WiFiNetworkRef)_currentNetwork
 {
     return _currentNetwork;
 }
+
+#pragma mark - Functions
 
 void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token)
 {
@@ -171,10 +213,10 @@ void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef e
         [network populateData];
 
         WiFiNetworkRef currentNetwork = [manager _currentNetwork];
+
         // WiFiNetworkGetSSID() crashes if the network parameter is NULL therefore we need to check if it exists first.
         if (currentNetwork) {
-            // This check might not be the most reliable.
-            if ([[network SSID] isEqualToString:(NSString *)WiFiNetworkGetSSID(currentNetwork)])
+            if ([[network BSSID] isEqualToString:(NSString *)WiFiNetworkGetProperty(currentNetwork, CFSTR("BSSID"))])
                 [network setIsCurrentNetwork:YES];
         }
 
@@ -184,6 +226,24 @@ void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef e
     }
 
     [manager _scanningDidEnd];
+}
+
+void associationCallback(WiFiDeviceClientRef device, WiFiNetworkRef networkRef, CFDictionaryRef dict, WiFiErrorRef error, void *token)
+{
+    if (error)
+        NSLog(@"[associationCallback] Error: %@", error);
+
+    // Reload every network's data.
+    for (DMNetwork *network in [[DMNetworksManager sharedInstance] networks]) {
+        [network populateData];
+
+        if (networkRef) {
+            if ([[network BSSID] isEqualToString:(NSString *)WiFiNetworkGetProperty(networkRef, CFSTR("BSSID"))])
+                [network setIsCurrentNetwork:YES];
+        }
+    }
+
+    [[DMNetworksManager sharedInstance] _associationDidEnd];
 }
 
 void receivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)

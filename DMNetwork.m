@@ -19,6 +19,8 @@
 @synthesize isCurrentNetwork = _isCurrentNetwork;
 @synthesize isAdHoc          = _isAdhoc;
 @synthesize isHidden         = _isHidden;
+@synthesize isAssociating    = _isAssociating;
+@synthesize networkRef       = _network;
 
 - (id)initWithNetwork:(WiFiNetworkRef)network
 {
@@ -44,7 +46,7 @@
 
 - (NSString *)description
 {
-    return [NSString stringWithFormat:@"SSID: %@ RSSI: %f Encryption Model: %@ Channel: %i AppleHotspot: %i CurrentNetwork: %i BSSID: %@ AdHoc: %i Hidden: %i", [self SSID], [self RSSI], [self encryptionModel], [self channel], [self isAppleHotspot], [self isCurrentNetwork], [self BSSID], [self isAdHoc], [self isHidden]];
+    return [NSString stringWithFormat:@"SSID: %@ RSSI: %f Encryption Model: %@ Channel: %i AppleHotspot: %i CurrentNetwork: %i BSSID: %@ AdHoc: %i Hidden: %i Associating: %i", [self SSID], [self RSSI], [self encryptionModel], [self channel], [self isAppleHotspot], [self isCurrentNetwork], [self BSSID], [self isAdHoc], [self isHidden], [self isAssociating]];
 }
 
 

@@ -13,6 +13,8 @@
 - (void)scanTapped;
 - (void)managerDidBeginScanning;
 - (void)managerDidFinishScanning;
+- (void)managerDidBeginAssociating;
+- (void)managerDidFinishAssociating;
 - (void)enabledSwitchChanged:(UISwitch *)aSwitch;
 - (void)powerStateDidChange;
 - (void)linkDidChange;
@@ -31,6 +33,8 @@
 
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managerDidBeginScanning) name:kDMNetworksManagerDidStartScanning object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managerDidFinishScanning) name:kDMNetworksManagerDidFinishScanning object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managerDidBeginAssociating) name:kDMNetworksManagerDidStartAssociating object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managerDidFinishAssociating) name:kDMNetworksManagerDidFinishAssociating object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(powerStateDidChange) name:kDMWiFiPowerStateDidChange object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(linkDidChange) name:kDMWiFiLinkDidChange object:nil];
 
@@ -99,6 +103,16 @@
 
     // Display the number of networks in the navigation bar.
     [self setTitle:[NSString stringWithFormat:@"Networks (%u)", [[[DMNetworksManager sharedInstance] networks] count]]];
+}
+
+- (void)managerDidBeginAssociating
+{
+    [[self tableView] reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationNone];
+}
+
+- (void)managerDidFinishAssociating
+{
+    [[self tableView] reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationNone];
 }
 
 - (void)enabledSwitchChanged:(UISwitch *)aSwitch
@@ -194,7 +208,6 @@
                 [cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
                 [cell setAccessoryView:nil];
 
-
                 break;
             }
         }
@@ -204,15 +217,25 @@
 
             [[cell textLabel] setText:[network SSID]];
             [[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [network RSSI]]];
+            [cell setSelectionStyle:UITableViewCellSelectionStyleBlue];
             [cell setAccessoryType:UITableViewCellAccessoryDetailDisclosureButton];
             [cell setAccessoryView:nil];
 
             // Display a checkmark icon if we are currently connected to that network.
 
-            if ([network isCurrentNetwork])
+            if ([network isCurrentNetwork]) {
                 [[cell imageView] setImage:[UIImage imageWithContentsOfFile:[_airPortSettingsBundle pathForResource:@"BlueCheck@2x" ofType:@"png"]]];
-            else
+                if (_spinner)
+                    [_spinner removeFromSuperview];
+            } else {
                 [[cell imageView] setImage:[UIImage imageWithContentsOfFile:[_airPortSettingsBundle pathForResource:@"spacer@2x" ofType:@"png"]]];
+                if ([network isAssociating]) {
+                    _spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+                    [[cell imageView] addSubview:_spinner];
+                    [_spinner startAnimating];
+                    [_spinner release];
+                }
+            }
 
             break;
         }
@@ -243,8 +266,12 @@
 
         [informationViewController release];
 
-        [tableView deselectRowAtIndexPath:indexPath animated:YES];
+    } else if ([indexPath section] == 1) {
+        DMNetwork *network = [[[DMNetworksManager sharedInstance] networks] objectAtIndex:[indexPath row]];
+        [[DMNetworksManager sharedInstance] associateWithNetwork:network];
     }
+
+    [tableView deselectRowAtIndexPath:indexPath animated:YES];
 }
 
 @end

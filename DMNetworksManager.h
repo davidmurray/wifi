@@ -10,16 +10,19 @@
 #import "MobileWiFi.h"
 #import "DMNetwork.h"
 
-#define kDMNetworksManagerDidStartScanning  @"DMNetworksManagerDidStartScanning"
-#define kDMNetworksManagerDidFinishScanning @"DMNetworksManagerDidFinishScanning"
-#define kDMWiFiPowerStateDidChange          @"DMWiFiPowerStateDidChange"
-#define kDMWiFiLinkDidChange                @"DMWiFiLinkDidChange"
+#define kDMNetworksManagerDidStartScanning     @"DMNetworksManagerDidStartScanning"
+#define kDMNetworksManagerDidFinishAssociating @"DMNetworksManagerDidFinishAssociating"
+#define kDMNetworksManagerDidStartAssociating  @"DMNetworksManagerDidStartAssociating"
+#define kDMNetworksManagerDidFinishScanning    @"DMNetworksManagerDidFinishScanning"
+#define kDMWiFiPowerStateDidChange             @"DMWiFiPowerStateDidChange"
+#define kDMWiFiLinkDidChange                   @"DMWiFiLinkDidChange"
 
 @interface DMNetworksManager : NSObject {
     WiFiManagerRef      _manager;
     WiFiDeviceClientRef _client;
     WiFiNetworkRef      _currentNetwork;
     BOOL                _scanning;
+    BOOL                _associating;
     NSMutableArray      *_networks;
 }
 
@@ -30,5 +33,6 @@
 + (id)sharedInstance;
 - (void)reloadNetworks;
 - (NSString *)interfaceName;
+- (void)associateWithNetwork:(DMNetwork *)network;
 
 @end

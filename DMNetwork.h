@@ -21,6 +21,7 @@
     BOOL           _isCurrentNetwork;
     BOOL           _isAdHoc;
     BOOL           _isHidden;
+    BOOL           _isAssociating;
 }
 
 @property(nonatomic, copy) NSString *SSID;
@@ -33,6 +34,8 @@
 @property(nonatomic, assign) BOOL isCurrentNetwork;
 @property(nonatomic, assign) BOOL isAdHoc;
 @property(nonatomic, assign) BOOL isHidden;
+@property(nonatomic, assign) BOOL isAssociating;
+@property(nonatomic, assign, readonly) WiFiNetworkRef networkRef;
 
 - (id)initWithNetwork:(WiFiNetworkRef)network;
 - (void)populateData;
