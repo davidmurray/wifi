@@ -15,7 +15,7 @@
 - (void)managerDidFinishScanning;
 - (void)managerDidBeginAssociating;
 - (void)managerDidFinishAssociating;
-- (void)enabledSwitchChanged:(UISwitch *)aSwitch;
+- (void)switchValueChanged:(UISwitch *)aSwitch;
 - (void)powerStateDidChange;
 - (void)linkDidChange;
 
@@ -42,6 +42,10 @@
             [self scanTapped];
 
         _airPortSettingsBundle = [NSBundle bundleWithPath:@"/System/Library/PreferenceBundles/AirPortSettings.bundle"];
+
+        // Set up a timer to automatically initiate a scan every 8 seconds.
+        if ([[NSUserDefaults standardUserDefaults] boolForKey:kDMAutoScanKey])
+            _autoScanTimer = [NSTimer scheduledTimerWithTimeInterval:8 target:self selector:@selector(scanTapped) userInfo:nil repeats:YES];
     }
 
     return self;
@@ -115,22 +119,39 @@
     [[self tableView] reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationNone];
 }
 
-- (void)enabledSwitchChanged:(UISwitch *)aSwitch
+- (void)switchValueChanged:(UISwitch *)aSwitch
 {
     BOOL value = [aSwitch isOn];
 
-    [[DMNetworksManager sharedInstance] setWiFiEnabled:value];
+    if ([aSwitch tag] == kWiFiEnabledSwitchTag) {
+        [[DMNetworksManager sharedInstance] setWiFiEnabled:value];
 
-    if (value == YES) {
-        [self scanTapped];
+        if (value == YES) {
+            [self scanTapped];
+        } else {
+            if (_numberOfSections == 2) {
+                [[self tableView] beginUpdates];
+
+                _numberOfSections = 1;
+
+                [[self tableView] deleteSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationAutomatic];
+                [[self tableView] endUpdates];
+            }
+
+            [self setTitle:@"Networks"];
+        }
     } else {
-        if (_numberOfSections == 2) {
-            [[self tableView] beginUpdates];
+        // Save the value.
+        NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+        [defaults setBool:value forKey:kDMAutoScanKey];
+        [defaults synchronize];
 
-            _numberOfSections = 1;
-
-            [[self tableView] deleteSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationAutomatic];
-            [[self tableView] endUpdates];
+        // Stop the timer if the switch was set to NO or start it if was set to YES.
+        if (value == NO) {
+            [_autoScanTimer invalidate];
+            _autoScanTimer = nil;
+        } else {
+            _autoScanTimer = [NSTimer scheduledTimerWithTimeInterval:8 target:self selector:@selector(scanTapped) userInfo:nil repeats:YES];
         }
     }
 }
@@ -144,9 +165,9 @@
 {
     BOOL wiFiEnabled = [[DMNetworksManager sharedInstance] isWiFiEnabled];
 
-    [_switchView setOn:wiFiEnabled animated:NO];
+    [_enabledSwitchView setOn:wiFiEnabled animated:NO];
     [_scanButton setEnabled:wiFiEnabled];
-    [self enabledSwitchChanged:_switchView];
+    [self switchValueChanged:_enabledSwitchView];
 
     if (wiFiEnabled)
         [[DMNetworksManager sharedInstance] reloadNetworks];
@@ -165,7 +186,7 @@
 
     switch (section) {
         case 0:
-            return 2;
+            return 3;
         case 1:
             return [[[DMNetworksManager sharedInstance] networks] count];
         default:
@@ -192,14 +213,31 @@
                 [[cell detailTextLabel] setText:nil];
                 [[cell imageView] setImage:nil];
 
-                _switchView = [[UISwitch alloc] initWithFrame:CGRectZero];
-                [cell setAccessoryView:_switchView];
-                [_switchView setOn:[[DMNetworksManager sharedInstance] isWiFiEnabled] animated:NO];
-                [_switchView addTarget:self action:@selector(enabledSwitchChanged:) forControlEvents:UIControlEventValueChanged];
-                [_switchView release];
+                _enabledSwitchView = [[UISwitch alloc] init];
+                [_enabledSwitchView setTag:kWiFiEnabledSwitchTag];
+                [_enabledSwitchView setOn:[[DMNetworksManager sharedInstance] isWiFiEnabled] animated:NO];
+                [_enabledSwitchView addTarget:self action:@selector(switchValueChanged:) forControlEvents:UIControlEventValueChanged];
+                [cell setAccessoryView:_enabledSwitchView];
+                [_enabledSwitchView release];
 
                 break;
-            } else {
+            } else if ([indexPath row] == 1) {
+                [[cell textLabel] setText:@"Auto-Scan"];
+                [[cell textLabel] setTextColor:[UIColor blackColor]];
+                [[cell detailTextLabel] setText:nil];
+                [[cell imageView] setImage:nil];
+                [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+
+                UISwitch *switchView = [[UISwitch alloc] init];
+                [switchView setTag:kAutoScanEnabledSwitchTag];
+                [switchView setOn:[[NSUserDefaults standardUserDefaults] boolForKey:kDMAutoScanKey] animated:NO];
+                [switchView addTarget:self action:@selector(switchValueChanged:) forControlEvents:UIControlEventValueChanged];
+
+                [cell setAccessoryView:switchView];
+                [switchView release];
+
+                break;
+            } else if ([indexPath row] == 2) {
                 [[cell textLabel] setText:@"Information"];
                 [[cell textLabel] setTextColor:[UIColor blackColor]];
                 [[cell detailTextLabel] setText:nil];
@@ -225,15 +263,18 @@
 
             if ([network isCurrentNetwork]) {
                 [[cell imageView] setImage:[UIImage imageWithContentsOfFile:[_airPortSettingsBundle pathForResource:@"BlueCheck@2x" ofType:@"png"]]];
+                [[cell textLabel] setTextColor:[UIColor tableCellValue1BlueColor]];
                 if (_spinner)
                     [_spinner removeFromSuperview];
             } else {
                 [[cell imageView] setImage:[UIImage imageWithContentsOfFile:[_airPortSettingsBundle pathForResource:@"spacer@2x" ofType:@"png"]]];
+                [[cell textLabel] setTextColor:[UIColor blackColor]];
                 if ([network isAssociating]) {
                     _spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
                     [[cell imageView] addSubview:_spinner];
                     [_spinner startAnimating];
                     [_spinner release];
+                    _spinner = nil;
                 }
             }
 
@@ -267,8 +308,10 @@
         [informationViewController release];
 
     } else if ([indexPath section] == 1) {
-        DMNetwork *network = [[[DMNetworksManager sharedInstance] networks] objectAtIndex:[indexPath row]];
-        [[DMNetworksManager sharedInstance] associateWithNetwork:network];
+        DMNetworksManager *manager = [DMNetworksManager sharedInstance];
+
+        DMNetwork *network = [[manager networks] objectAtIndex:[indexPath row]];
+        [manager associateWithNetwork:network];
     }
 
     [tableView deselectRowAtIndexPath:indexPath animated:YES];

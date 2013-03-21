@@ -56,6 +56,7 @@ extern "C" {
     extern void WiFiDeviceClientScanAsync(WiFiDeviceClientRef device, CFDictionaryRef dict, WiFiDeviceScanCallback callback, uint32_t flags);
     extern void WiFiDeviceClientAssociateAsync(WiFiDeviceClientRef client, WiFiNetworkRef network, WiFiDeviceAssociateCallback callback, CFDictionaryRef dict);
     extern void WiFiDeviceClientAssociateCancel(WiFiDeviceClientRef client);
+    extern void WiFiDeviceClientDisassociate(WiFiDeviceClientRef client);
     extern CFStringRef WiFiDeviceClientGetInterfaceName(WiFiDeviceClientRef client);
 
     extern CFStringRef kWiFiATJTestModeEnabledKey;

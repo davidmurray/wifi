@@ -15,6 +15,9 @@
 - (void)_addNetwork:(DMNetwork *)network;
 - (void)_scanningDidEnd;
 - (void)_associationDidEnd;
+- (void)_disassociate;
+- (void)_receivedNotificationNamed:(NSString *)name;
+- (void)_reloadCurrentNetwork;
 - (WiFiNetworkRef)_currentNetwork;
 
 void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token);
@@ -62,6 +65,7 @@ static DMNetworksManager *_sharedInstance = nil;
 {
     CFRelease(_manager);
     CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(), receivedNotification, NULL, NULL);
+    CFRelease(_currentNetwork);
 
     [self _clearNetworks];
 
@@ -79,13 +83,9 @@ static DMNetworksManager *_sharedInstance = nil;
     // Post a notification to tell the controller that scanning has started.
     [[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidStartScanning object:nil];
 
-    if (_currentNetwork) {
-        CFRelease(_currentNetwork);
-        _currentNetwork = nil;
-    }
+    // Reload the current network.
+    [self _reloadCurrentNetwork];
 
-    // Get the current network.
-    _currentNetwork = WiFiDeviceClientCopyCurrentNetwork(_client);
 
     // Initiate a scan.
     [self _scan];
@@ -98,6 +98,18 @@ static DMNetworksManager *_sharedInstance = nil;
         return;
 
     _associating = YES;
+
+    if (_currentNetwork) {
+        // Prevent associating if we're already associated with that network.
+        if ([[network BSSID] isEqualToString:(NSString *)WiFiNetworkGetProperty(_currentNetwork, CFSTR("BSSID"))]) {
+            NSLog(@"SAME_NETWORK");
+            return;
+        } else {
+            // Disassociate with the current network before associating with a new one.
+            NSLog(@"DISASSOCIATING");
+            [self _disassociate];
+        }
+    }
 
     WiFiManagerClientScheduleWithRunLoop(_manager, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
 
@@ -159,6 +171,11 @@ static DMNetworksManager *_sharedInstance = nil;
     [_networks addObject:network];
 }
 
+- (void)_disassociate
+{
+    WiFiDeviceClientDisassociate(_client);
+}
+
 - (void)_scanningDidEnd
 {
     // Reverse the array so that networks with the highest signal strength go to the top.
@@ -180,12 +197,14 @@ static DMNetworksManager *_sharedInstance = nil;
     WiFiManagerClientUnscheduleFromRunLoop(_manager);
 
     for (DMNetwork *network in [[DMNetworksManager sharedInstance] networks]) {
-        if ([network isAssociating]) {
+        if ([network isAssociating])
             [network setIsAssociating:NO];
-        }
     }
 
     _associating = NO;
+
+    // Reload the current network.
+    [self _reloadCurrentNetwork];
 
     // Post a notification to tell the controller that association has finished.
     [[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidFinishAssociating object:nil];
@@ -196,12 +215,34 @@ static DMNetworksManager *_sharedInstance = nil;
     return _currentNetwork;
 }
 
+- (void)_reloadCurrentNetwork
+{
+    if (_currentNetwork) {
+        CFRelease(_currentNetwork);
+        _currentNetwork = nil;
+    }
+
+    _currentNetwork = WiFiDeviceClientCopyCurrentNetwork(_client);
+}
+
+- (void)_receivedNotificationNamed:(NSString *)name
+{
+    if ([name isEqualToString:@"com.apple.wifi.powerstatedidchange"]) {
+        [[NSNotificationCenter defaultCenter] postNotificationName:kDMWiFiPowerStateDidChange object:nil];
+    } else if ([name isEqualToString:@"com.apple.wifi.linkdidchange"]) {
+        [self _reloadCurrentNetwork];
+        [[NSNotificationCenter defaultCenter] postNotificationName:kDMWiFiLinkDidChange object:nil];
+    }
+}
+
 #pragma mark - Functions
 
 void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token)
 {
-    if (error)
+    if (error) {
         NSLog(@"[scanCallback] Error: %@", error);
+        return;
+    }
 
     DMNetworksManager *manager = [DMNetworksManager sharedInstance];
     [manager _clearNetworks];
@@ -230,8 +271,10 @@ void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef e
 
 void associationCallback(WiFiDeviceClientRef device, WiFiNetworkRef networkRef, CFDictionaryRef dict, WiFiErrorRef error, void *token)
 {
-    if (error)
+    if (error) {
         NSLog(@"[associationCallback] Error: %@", error);
+        return;
+    }
 
     // Reload every network's data.
     for (DMNetwork *network in [[DMNetworksManager sharedInstance] networks]) {
@@ -248,10 +291,7 @@ void associationCallback(WiFiDeviceClientRef device, WiFiNetworkRef networkRef, 
 
 void receivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
-    if ([(NSString *)name isEqualToString:@"com.apple.wifi.powerstatedidchange"])
-        [[NSNotificationCenter defaultCenter] postNotificationName:kDMWiFiPowerStateDidChange object:nil];
-    else if ([(NSString *)name isEqualToString:@"com.apple.wifi.linkdidchange"])
-        [[NSNotificationCenter defaultCenter] postNotificationName:kDMWiFiLinkDidChange object:nil];
+    [[DMNetworksManager sharedInstance] _receivedNotificationNamed:(NSString *)name];
 }
 
 @end
