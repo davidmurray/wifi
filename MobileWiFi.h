@@ -9,7 +9,7 @@ extern "C" {
     typedef struct __WiFiDeviceClient *WiFiDeviceClientRef;
     typedef struct __WiFiNetwork      *WiFiNetworkRef;
     typedef struct __WiFiManager      *WiFiManagerRef;
-    typedef struct __WiFiError        *WiFiErrorRef;
+    typedef CFErrorRef                *WiFiErrorRef;
 
     typedef void (*WiFiDeviceScanCallback)(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token);
     typedef void (*WiFiDeviceAssociateCallback)(WiFiDeviceClientRef device, WiFiNetworkRef network, CFDictionaryRef dict, WiFiErrorRef error, void *token);

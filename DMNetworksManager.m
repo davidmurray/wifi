@@ -240,7 +240,9 @@ static DMNetworksManager *_sharedInstance = nil;
 void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token)
 {
     if (error) {
-        NSLog(@"[scanCallback] Error: %@", error);
+        CFStringRef errorDescription = CFErrorCopyDescription((CFErrorRef)error);
+        NSLog(@"[scanCallback] Error: %@", errorDescription);
+        CFRelease(errorDescription);
         return;
     }
 
@@ -272,7 +274,9 @@ void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef e
 void associationCallback(WiFiDeviceClientRef device, WiFiNetworkRef networkRef, CFDictionaryRef dict, WiFiErrorRef error, void *token)
 {
     if (error) {
-        NSLog(@"[associationCallback] Error: %@", error);
+        CFStringRef errorDescription = CFErrorCopyDescription((CFErrorRef)error);
+        NSLog(@"[associationCallback] Error: %@", errorDescription);
+        CFRelease(errorDescription);
         return;
     }
 

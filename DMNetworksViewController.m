@@ -72,6 +72,10 @@
 
 - (void)scanTapped
 {
+    // Don't initiate a scan if WiFi is off.
+    if ([[DMNetworksManager sharedInstance] isWiFiEnabled] == NO)
+        return;
+
     if (_numberOfSections == 2) {
         [[self tableView] beginUpdates];
 
