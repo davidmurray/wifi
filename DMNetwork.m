@@ -13,6 +13,9 @@
 @synthesize RSSI             = _RSSI;
 @synthesize encryptionModel  = _encryptionModel;
 @synthesize BSSID            = _BSSID;
+@synthesize username         = _username;
+@synthesize password         = _password;
+@synthesize vendor           = _vendor;
 @synthesize channel          = _channel;
 @synthesize APMode           = _APMode;
 @synthesize isAppleHotspot   = _isAppleHotspot;
@@ -20,6 +23,8 @@
 @synthesize isAdHoc          = _isAdhoc;
 @synthesize isHidden         = _isHidden;
 @synthesize isAssociating    = _isAssociating;
+@synthesize requiresUsername = _requiresUsername;
+@synthesize requiresPassword = _requiresPassword;
 @synthesize networkRef       = _network;
 
 - (id)initWithNetwork:(WiFiNetworkRef)network
@@ -38,6 +43,9 @@
     [_SSID release];
     [_encryptionModel release];
     [_BSSID release];
+    [_username release];
+    [_password release];
+    [_vendor release];
     CFRelease(_network);
 
     [super dealloc];
@@ -116,6 +124,66 @@
 
     int APMode = [(NSNumber *)WiFiNetworkGetProperty(_network, CFSTR("AP_MODE")) intValue];
     [self setAPMode:APMode];
+
+    //NSDictionary *dict = (NSDictionary *)WiFiNetworkCopyRecord(_network);
+    //NSLog(@"dict: %@", dict);
+    //[dict release];
+
+    // Requires username
+
+    BOOL requiresUsername = WiFiNetworkRequiresUsername(_network);
+    [self setRequiresUsername:requiresUsername];
+
+    // Requires password
+
+    BOOL requiresPassword = WiFiNetworkRequiresPassword(_network);
+    [self setRequiresPassword:requiresPassword];
+
+    // Vendor
+    DMNetworkGetVendorFromMacAddress(BSSID, ^(NSString *retVal, NSError *error) {
+        if (error) {
+            NSLog(@"[DMNetwork]:[populateData]: Error while getting vendor: %@", [error localizedDescription]);
+            [self setVendor:@"N/A"];
+        } else {
+            NSLog(@"retVal: %@", retVal);
+            [self setVendor:retVal];
+        }
+    });
+}
+
+void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetVendorCompletion completion)
+{
+    NSString *address = [NSString stringWithFormat:@"%@/%@/%@", kVendorBaseURL, kVendorAPIKey, macAddress];
+
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:address]];
+    [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+        if (error) {
+            completion(nil, error);
+            return;
+        }
+
+        NSString *result = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
+
+        if ([result isEqualToString:@"none"] == YES) {
+            NSMutableDictionary *errorDetail = [NSMutableDictionary dictionary];
+            [errorDetail setValue:@"Couldn't get vendor because the API returned \"none\"." forKey:NSLocalizedDescriptionKey];
+
+            NSError *anError = [NSError errorWithDomain:@"DMNetworkErrorDomain" code:100 userInfo:errorDetail];
+            completion(nil, anError);
+            return;
+        } else {
+            NSRange firstRange = [result rangeOfString:@"<company>"];
+            NSRange secondRange = [result rangeOfString:@"</company>"];
+
+            if (firstRange.location != NSNotFound) {
+                NSUInteger index = firstRange.location + firstRange.length;
+                NSRange finalRange = NSMakeRange(index, secondRange.location - index);
+
+                NSString *retVal = [result substringWithRange:finalRange];
+                completion(retVal, nil);
+            }
+        }
+    }];
 }
 
 @end

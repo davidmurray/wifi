@@ -102,11 +102,9 @@ static DMNetworksManager *_sharedInstance = nil;
     if (_currentNetwork) {
         // Prevent associating if we're already associated with that network.
         if ([[network BSSID] isEqualToString:(NSString *)WiFiNetworkGetProperty(_currentNetwork, CFSTR("BSSID"))]) {
-            NSLog(@"SAME_NETWORK");
             return;
         } else {
             // Disassociate with the current network before associating with a new one.
-            NSLog(@"DISASSOCIATING");
             [self _disassociate];
         }
     }
@@ -116,7 +114,10 @@ static DMNetworksManager *_sharedInstance = nil;
     WiFiNetworkRef net = [network networkRef];
 
     if (net) {
-        WiFiNetworkSetPassword(net, CFSTR("PASS_GOES_HERE"));
+        // XXX: Figure out how Apple sets the username.
+        if ([network password])
+            WiFiNetworkSetPassword(net, (CFStringRef)[network password]);
+
         WiFiDeviceClientAssociateAsync(_client, net, associationCallback, NULL);
         [network setIsAssociating:YES];
     }

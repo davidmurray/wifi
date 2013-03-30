@@ -1,6 +1,5 @@
 include theos/makefiles/common.mk
 
-
 APPLICATION_NAME = WiFi
 WiFi_FILES = main.m WiFiApplication.mm DMNetworksViewController.m DMNetworksManager.m DMInformationViewController.m DMNetwork.m DMDetailViewController.m
 WiFi_FRAMEWORKS = UIKit CoreGraphics

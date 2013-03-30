@@ -56,7 +56,7 @@
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
     // Return the number of rows in the section.
-    return 7;
+    return 8;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -97,6 +97,10 @@
         } case 6: {
             [[cell textLabel] setText:@"AP Mode"];
             [[cell detailTextLabel] setText:[NSString stringWithFormat:@"%i", [_network APMode]]];
+            break;
+        } case 7: {
+            [[cell textLabel] setText:@"Vendor"];
+            [[cell detailTextLabel] setText:[_network vendor]];
             break;
         }
     }

@@ -93,10 +93,15 @@
     _hud = [[UIProgressHUD alloc] initWithFrame:CGRectZero];
     [_hud setText:@"Scanning..."];
     [_hud showInView:[[UIApplication sharedApplication] keyWindow]];
+
+    // Prevent scrolling the tableview when there's an HUD.
+    [[self tableView] setScrollEnabled:NO];
 }
 
 - (void)managerDidFinishScanning
 {
+    [[self tableView] setScrollEnabled:YES];
+
     if (_numberOfSections == 1) {
         [[self tableView] beginUpdates];
 
@@ -289,7 +294,7 @@
     return cell;
 }
 
-#pragma mark - Table view delegate
+#pragma mark - UITableViewDelegate
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath
 {
@@ -315,10 +320,38 @@
         DMNetworksManager *manager = [DMNetworksManager sharedInstance];
 
         DMNetwork *network = [[manager networks] objectAtIndex:[indexPath row]];
-        [manager associateWithNetwork:network];
+
+        if ([network requiresUsername] == NO && [network requiresPassword] == NO) {
+            [manager associateWithNetwork:network];
+        } else {
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"\"%@\" requires authentication.", [network SSID]] message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Connect", nil];
+            [alert setAlertViewStyle:([network requiresUsername] == YES ? UIAlertViewStyleLoginAndPasswordInput : UIAlertViewStyleSecureTextInput)];
+            [alert show];
+            [alert release];
+
+            _associatingNetwork = network;
+        }
     }
 
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
+#pragma mark - UIAlertViewDelegate
+
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    if (buttonIndex == 1) {
+        if ([_associatingNetwork requiresUsername]) {
+            [_associatingNetwork setUsername:[[alertView textFieldAtIndex:0] text]];
+            [_associatingNetwork setPassword:[[alertView textFieldAtIndex:1] text]];
+        } else {
+            [_associatingNetwork setPassword:[[alertView textFieldAtIndex:0] text]];
+        }
+
+        [[DMNetworksManager sharedInstance] associateWithNetwork:_associatingNetwork];
+
+        _associatingNetwork = nil;
+    }
 }
 
 @end

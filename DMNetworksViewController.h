@@ -32,7 +32,7 @@
 + (UIColor *)tableCellValue1BlueColor;
 @end
 
-@interface DMNetworksViewController : UITableViewController {
+@interface DMNetworksViewController : UITableViewController <UIAlertViewDelegate> {
     UIProgressHUD           *_hud;
     UIBarButtonItem         *_scanButton;
     UISwitch                *_enabledSwitchView;
@@ -40,6 +40,7 @@
     NSBundle                *_airPortSettingsBundle;
     NSTimer                 *_autoScanTimer;
     long                    _numberOfSections;
+    DMNetwork               *_associatingNetwork;
 }
 
 @end

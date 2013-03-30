@@ -46,7 +46,10 @@ extern "C" {
     extern Boolean WiFiNetworkIsApplePersonalHotspot(WiFiNetworkRef network);
     extern Boolean WiFiNetworkIsAdHoc(WiFiNetworkRef network);
     extern Boolean WiFiNetworkIsHidden(WiFiNetworkRef network);
+    extern Boolean WiFiNetworkRequiresPassword(WiFiNetworkRef network);
+    extern Boolean WiFiNetworkRequiresUsername(WiFiNetworkRef network);
     extern CFDateRef WiFiNetworkGetLastAssociationDate(WiFiNetworkRef network);
+    extern CFDictionaryRef WiFiNetworkCopyRecord(WiFiNetworkRef network);
 
     // WiFi device client functions.
 
