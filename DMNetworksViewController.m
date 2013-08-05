@@ -41,7 +41,7 @@
         if ([[DMNetworksManager sharedInstance] isWiFiEnabled])
             [self scanTapped];
 
-        _airPortSettingsBundle = [NSBundle bundleWithPath:@"/System/Library/PreferenceBundles/AirPortSettings.bundle"];
+        _airPortSettingsBundle = [[NSBundle bundleWithPath:@"/System/Library/PreferenceBundles/AirPortSettings.bundle"] retain];
 
         // Set up a timer to automatically initiate a scan every 8 seconds.
         if ([[NSUserDefaults standardUserDefaults] boolForKey:kDMAutoScanKey])
@@ -68,6 +68,7 @@
     [[NSNotificationCenter defaultCenter] removeObserver:self];
 
     [super dealloc];
+    [_airPortSettingsBundle release];
 }
 
 - (void)scanTapped
@@ -309,7 +310,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    if ([indexPath section] == 0 && [indexPath row] == 1) {
+    if ([indexPath section] == 0 && [indexPath row] == 2) {
         DMInformationViewController *informationViewController = [[DMInformationViewController alloc] initWithStyle:UITableViewStyleGrouped];
 
         [[self navigationController] pushViewController:informationViewController animated:YES];
