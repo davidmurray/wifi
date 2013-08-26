@@ -20,9 +20,9 @@
 - (void)_reloadCurrentNetwork;
 - (WiFiNetworkRef)_currentNetwork;
 
-void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token);
-void associationCallback(WiFiDeviceClientRef device, WiFiNetworkRef networkRef, CFDictionaryRef dict, WiFiErrorRef error, void *token);
-void receivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo);
+static void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token);
+static void associationCallback(WiFiDeviceClientRef device, WiFiNetworkRef networkRef, CFDictionaryRef dict, WiFiErrorRef error, void *token);
+static void receivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo);
 
 @end
 
@@ -237,12 +237,15 @@ static DMNetworksManager *_sharedInstance = nil;
 
 #pragma mark - Functions
 
-void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token)
+static void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token)
 {
 	if (error) {
 		CFStringRef errorDescription = CFErrorCopyDescription((CFErrorRef)error);
 		NSLog(@"[%s] Error while scanning: %@", __FUNCTION__, errorDescription);
 		CFRelease(errorDescription);
+
+		_scanning = NO;
+
 		return;
 	}
 
@@ -271,7 +274,7 @@ void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef e
 	[manager _scanningDidEnd];
 }
 
-void associationCallback(WiFiDeviceClientRef device, WiFiNetworkRef networkRef, CFDictionaryRef dict, WiFiErrorRef error, void *token)
+static void associationCallback(WiFiDeviceClientRef device, WiFiNetworkRef networkRef, CFDictionaryRef dict, WiFiErrorRef error, void *token)
 {
 	if (error) {
 		CFStringRef errorDescription = CFErrorCopyDescription((CFErrorRef)error);
@@ -293,7 +296,7 @@ void associationCallback(WiFiDeviceClientRef device, WiFiNetworkRef networkRef, 
 	[[DMNetworksManager sharedInstance] _associationDidEnd];
 }
 
-void receivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
+static void receivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
 	[[DMNetworksManager sharedInstance] _receivedNotificationNamed:(NSString *)name];
 }
