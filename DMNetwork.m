@@ -16,8 +16,10 @@
 @synthesize username         = _username;
 @synthesize password         = _password;
 @synthesize vendor           = _vendor;
+@synthesize record           = _record;
 @synthesize channel          = _channel;
 @synthesize APMode           = _APMode;
+@synthesize bars             = _bars;
 @synthesize isAppleHotspot   = _isAppleHotspot;
 @synthesize isCurrentNetwork = _isCurrentNetwork;
 @synthesize isAdHoc          = _isAdhoc;
@@ -29,161 +31,162 @@
 
 - (id)initWithNetwork:(WiFiNetworkRef)network
 {
-    self = [super init];
+	self = [super init];
 
-    if (self) {
-        _network = (WiFiNetworkRef)CFRetain(network);
-    }
+	if (self) {
+		_network = (WiFiNetworkRef)CFRetain(network);
+	}
 
-    return self;
+	return self;
 }
 
 - (void)dealloc
 {
-    [_SSID release];
-    [_encryptionModel release];
-    [_BSSID release];
-    [_username release];
-    [_password release];
-    [_vendor release];
-    CFRelease(_network);
+	[_SSID release];
+	[_encryptionModel release];
+	[_BSSID release];
+	[_username release];
+	[_password release];
+	[_vendor release];
+	[_record release];
+	CFRelease(_network);
 
-    [super dealloc];
+	[super dealloc];
 }
 
 
 - (NSString *)description
 {
-    return [NSString stringWithFormat:@"SSID: %@ RSSI: %f Encryption Model: %@ Channel: %i AppleHotspot: %i CurrentNetwork: %i BSSID: %@ AdHoc: %i Hidden: %i Associating: %i", [self SSID], [self RSSI], [self encryptionModel], [self channel], [self isAppleHotspot], [self isCurrentNetwork], [self BSSID], [self isAdHoc], [self isHidden], [self isAssociating]];
+	return [NSString stringWithFormat:@"SSID: %@ RSSI: %f Encryption Model: %@ Channel: %i AppleHotspot: %i CurrentNetwork: %i BSSID: %@ AdHoc: %i Hidden: %i Associating: %i", [self SSID], [self RSSI], [self encryptionModel], [self channel], [self isAppleHotspot], [self isCurrentNetwork], [self BSSID], [self isAdHoc], [self isHidden], [self isAssociating]];
 }
 
 
 - (void)populateData
 {
-    // SSID
+	// SSID
 
-    NSString *SSID = (NSString *)WiFiNetworkGetSSID(_network);
-    [self setSSID:SSID];
+	NSString *SSID = (NSString *)WiFiNetworkGetSSID(_network);
+	[self setSSID:SSID];
 
-    // RSSI
+	// RSSI & bars.
 
-    CFNumberRef RSSI = (CFNumberRef)WiFiNetworkGetProperty(_network, kWiFiScaledRSSIKey);
+	CFNumberRef RSSI = (CFNumberRef)WiFiNetworkGetProperty(_network, CFSTR("RSSI"));
+	float strength;
+	CFNumberGetValue(RSSI, kCFNumberFloatType, &strength);
 
-    float strength;
-    CFNumberGetValue(RSSI, kCFNumberFloatType, &strength);
+	[self setRSSI:strength];
 
-    strength = strength * 100;
+	CFNumberRef gradedRSSI = (CFNumberRef)WiFiNetworkGetProperty(_network, kWiFiScaledRSSIKey);
+	float graded;
+	CFNumberGetValue(gradedRSSI, kCFNumberFloatType, &graded);
 
-    // Round to the nearest integer.
-    strength = ceilf(strength);
+	int bars = (int)ceilf((graded * -1.0f) * -3.0f);
+	bars = MAX(1, MIN(bars, 3));
 
-    // Convert to a negative number.
-    strength = strength * -1;
+	[self setBars:bars];
 
-    [self setRSSI:strength];
+	// Encryption model
 
-    // Encryption model
+	if (WiFiNetworkIsWEP(_network))
+		[self setEncryptionModel:@"WEP"];
+	else if (WiFiNetworkIsWPA(_network))
+		[self setEncryptionModel:@"WPA"];
+	else
+		[self setEncryptionModel:@"None"];
 
-    if (WiFiNetworkIsWEP(_network))
-        [self setEncryptionModel:@"WEP"];
-    else if (WiFiNetworkIsWPA(_network))
-        [self setEncryptionModel:@"WPA"];
-    else
-        [self setEncryptionModel:@"None"];
+	// Channel
 
-    // Channel
+	CFNumberRef networkChannel = (CFNumberRef)WiFiNetworkGetProperty(_network, CFSTR("CHANNEL"));
 
-    CFNumberRef networkChannel = (CFNumberRef)WiFiNetworkGetProperty(_network, CFSTR("CHANNEL"));
+	int channel;
+	CFNumberGetValue(networkChannel, kCFNumberIntType, &channel);
 
-    int channel;
-    CFNumberGetValue(networkChannel, kCFNumberIntType, &channel);
+	[self setChannel:channel];
 
-    [self setChannel:channel];
+	// Apple Hotspot
 
-    // Apple Hotspot
+	BOOL isAppleHotspot = WiFiNetworkIsApplePersonalHotspot(_network);
+	[self setIsAppleHotspot:isAppleHotspot];
 
-    BOOL isAppleHotspot = WiFiNetworkIsApplePersonalHotspot(_network);
-    [self setIsAppleHotspot:isAppleHotspot];
+	// BSSID
 
-    // BSSID
+	NSString *BSSID = (NSString *)WiFiNetworkGetProperty(_network, CFSTR("BSSID"));
+	[self setBSSID:BSSID];
 
-    NSString *BSSID = (NSString *)WiFiNetworkGetProperty(_network, CFSTR("BSSID"));
-    [self setBSSID:BSSID];
+	// AdHoc
 
-    // AdHoc
+	BOOL isAdHoc = WiFiNetworkIsAdHoc(_network);
+	[self setIsAdHoc:isAdHoc];
 
-    BOOL isAdHoc = WiFiNetworkIsAdHoc(_network);
-    [self setIsAdHoc:isAdHoc];
+	// Hidden
 
-    // Hidden
+	BOOL isHidden = WiFiNetworkIsHidden(_network);
+	[self setIsHidden:isHidden];
 
-    BOOL isHidden = WiFiNetworkIsHidden(_network);
-    [self setIsHidden:isHidden];
+	// AP Mode
 
-    // AP Mode
+	int APMode = [(NSNumber *)WiFiNetworkGetProperty(_network, CFSTR("AP_MODE")) intValue];
+	[self setAPMode:APMode];
 
-    int APMode = [(NSNumber *)WiFiNetworkGetProperty(_network, CFSTR("AP_MODE")) intValue];
-    [self setAPMode:APMode];
+	// Record
+	NSDictionary *record = (NSDictionary *)WiFiNetworkCopyRecord(_network);
+	[self setRecord:record];
+	[record release];
 
-    //NSDictionary *dict = (NSDictionary *)WiFiNetworkCopyRecord(_network);
-    //NSLog(@"dict: %@", dict);
-    //[dict release];
+	// Requires username
 
-    // Requires username
+	BOOL requiresUsername = WiFiNetworkRequiresUsername(_network);
+	[self setRequiresUsername:requiresUsername];
 
-    BOOL requiresUsername = WiFiNetworkRequiresUsername(_network);
-    [self setRequiresUsername:requiresUsername];
+	// Requires password
 
-    // Requires password
+	BOOL requiresPassword = WiFiNetworkRequiresPassword(_network);
+	[self setRequiresPassword:requiresPassword];
 
-    BOOL requiresPassword = WiFiNetworkRequiresPassword(_network);
-    [self setRequiresPassword:requiresPassword];
-
-    // Vendor
-    DMNetworkGetVendorFromMacAddress(BSSID, ^(NSString *retVal, NSError *error) {
-        if (error) {
-            NSLog(@"[DMNetwork]:[populateData]: Error while getting vendor: %@", [error localizedDescription]);
-            [self setVendor:@"N/A"];
-        } else {
-            NSLog(@"retVal: %@", retVal);
-            [self setVendor:retVal];
-        }
-    });
+	// Vendor
+	DMNetworkGetVendorFromMacAddress(BSSID, ^(NSString *retVal, NSError *error) {
+		if (error) {
+			NSLog(@"[DMNetwork]:[%s]: Error while getting vendor: %@", __FUNCTION__, [error localizedDescription]);
+			[self setVendor:@"Unknown"];
+		} else {
+			[self setVendor:retVal];
+		}
+	});
 }
 
-void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetVendorCompletion completion)
+static void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetVendorCompletion completion)
 {
-    NSString *address = [NSString stringWithFormat:@"%@/%@/%@", kVendorBaseURL, kVendorAPIKey, macAddress];
+	NSString *address = [NSString stringWithFormat:@"%@/%@/%@", kDMVendorBaseURL, kDMVendorAPIKey, macAddress];
 
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:address]];
-    [NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
-        if (error) {
-            completion(nil, error);
-            return;
-        }
+	NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:address]];
+	[NSURLConnection sendAsynchronousRequest:request queue:[NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+		if (error) {
+			completion(nil, error);
+			return;
+		}
 
-        NSString *result = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
+		NSString *result = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
 
-        if ([result isEqualToString:@"none"] == YES) {
-            NSMutableDictionary *errorDetail = [NSMutableDictionary dictionary];
-            [errorDetail setValue:@"Couldn't get vendor because the API returned \"none\"." forKey:NSLocalizedDescriptionKey];
+		if ([result isEqualToString:@"none"] == YES) {
+			NSMutableDictionary *errorDetail = [NSMutableDictionary dictionary];
+			[errorDetail setValue:@"Couldn't get vendor because the API returned \"none\"." forKey:NSLocalizedDescriptionKey];
 
-            NSError *anError = [NSError errorWithDomain:@"DMNetworkErrorDomain" code:100 userInfo:errorDetail];
-            completion(nil, anError);
-            return;
-        } else {
-            NSRange firstRange = [result rangeOfString:@"<company>"];
-            NSRange secondRange = [result rangeOfString:@"</company>"];
+			NSError *anError = [NSError errorWithDomain:@"DMNetworkErrorDomain" code:100 userInfo:errorDetail];
+			completion(nil, anError);
+			return;
+		} else {
+			NSRange firstRange = [result rangeOfString:@"<company>"];
+			NSRange secondRange = [result rangeOfString:@"</company>"];
 
-            if (firstRange.location != NSNotFound) {
-                NSUInteger index = firstRange.location + firstRange.length;
-                NSRange finalRange = NSMakeRange(index, secondRange.location - index);
+			if (firstRange.location != NSNotFound) {
+				NSUInteger index = firstRange.location + firstRange.length;
+				NSRange finalRange = NSMakeRange(index, secondRange.location - index);
 
-                NSString *retVal = [result substringWithRange:finalRange];
-                completion(retVal, nil);
-            }
-        }
-    }];
+				NSString *retVal = [result substringWithRange:finalRange];
+				completion(retVal, nil);
+			}
+		}
+	}];
 }
 
 @end

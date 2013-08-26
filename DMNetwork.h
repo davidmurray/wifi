@@ -9,29 +9,31 @@
 #import <UIKit/UIKit.h>
 #import "MobileWiFi.h"
 
-#define kVendorBaseURL @"http://www.macvendorlookup.com/api/"
-#define kVendorAPIKey  @"CBZBXAV"
+#define kDMVendorBaseURL @"http://www.macvendorlookup.com/api/"
+#define kDMVendorAPIKey  @"CBZBXAV"
 
 typedef void (^DMNetworkGetVendorCompletion)(NSString *retVal, NSError *error);
 
 @interface DMNetwork : NSObject {
-    WiFiNetworkRef _network;
-    NSString       *_SSID;
-    NSString       *_encryptionModel;
-    NSString       *_BSSID;
-    NSString       *_username;
-    NSString       *_password;
-    NSString       *_vendor;
-    float          _RSSI;
-    int            _channel;
-    int            _APMode;
-    BOOL           _isAppleHotspot;
-    BOOL           _isCurrentNetwork;
-    BOOL           _isAdHoc;
-    BOOL           _isHidden;
-    BOOL           _isAssociating;
-    BOOL           _requiresUsername;
-    BOOL           _requiresPassword;
+	WiFiNetworkRef _network;
+	NSString       *_SSID;
+	NSString       *_encryptionModel;
+	NSString       *_BSSID;
+	NSString       *_username;
+	NSString       *_password;
+	NSString       *_vendor;
+	NSDictionary   *_record;
+	float          _RSSI;
+	int            _channel;
+	int            _APMode;
+	int 		   _bars;
+	BOOL           _isAppleHotspot;
+	BOOL           _isCurrentNetwork;
+	BOOL           _isAdHoc;
+	BOOL           _isHidden;
+	BOOL           _isAssociating;
+	BOOL           _requiresUsername;
+	BOOL           _requiresPassword;
 }
 
 @property(nonatomic, copy) NSString *SSID;
@@ -40,9 +42,11 @@ typedef void (^DMNetworkGetVendorCompletion)(NSString *retVal, NSError *error);
 @property(nonatomic, copy) NSString *password;
 @property(nonatomic, copy) NSString *username;
 @property(nonatomic, copy) NSString *vendor;
+@property(nonatomic, copy) NSDictionary *record;
 @property(nonatomic, assign) float RSSI;
 @property(nonatomic, assign) int channel;
 @property(nonatomic, assign) int APMode;
+@property(nonatomic, assign) int bars;
 @property(nonatomic, assign) BOOL isAppleHotspot;
 @property(nonatomic, assign) BOOL isCurrentNetwork;
 @property(nonatomic, assign) BOOL isAdHoc;
@@ -55,5 +59,5 @@ typedef void (^DMNetworkGetVendorCompletion)(NSString *retVal, NSError *error);
 - (id)initWithNetwork:(WiFiNetworkRef)network;
 - (void)populateData;
 
-void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetVendorCompletion completion);
+static void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetVendorCompletion completion);
 @end

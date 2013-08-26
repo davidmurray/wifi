@@ -10,7 +10,8 @@
 #import "DMNetwork.h"
 
 @interface DMDetailViewController : UITableViewController {
-    DMNetwork *_network;
+	DMNetwork    *_network;
+	NSDictionary *_networkRecord;
 }
 
 - (id)initWithStyle:(UITableViewStyle)style network:(DMNetwork *)network;

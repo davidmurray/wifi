@@ -18,12 +18,12 @@
 #define kDMWiFiLinkDidChange                   @"DMWiFiLinkDidChange"
 
 @interface DMNetworksManager : NSObject {
-    WiFiManagerRef      _manager;
-    WiFiDeviceClientRef _client;
-    WiFiNetworkRef      _currentNetwork;
-    BOOL                _scanning;
-    BOOL                _associating;
-    NSMutableArray      *_networks;
+	WiFiManagerRef      _manager;
+	WiFiDeviceClientRef _client;
+	WiFiNetworkRef      _currentNetwork;
+	BOOL                _scanning;
+	BOOL                _associating;
+	NSMutableArray      *_networks;
 }
 
 @property(nonatomic, retain, readonly) NSArray *networks;

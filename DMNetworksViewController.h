@@ -13,8 +13,8 @@
 
 #define kDMAutoScanKey            @"DMAutoScanKey"
 
-#define kWiFiEnabledSwitchTag     1
-#define kAutoScanEnabledSwitchTag 2
+#define kDMWiFiEnabledSwitchTag     0011
+#define kDMAutoScanEnabledSwitchTag 0022
 
 
 // Interface declarations for private APIs.
@@ -33,14 +33,14 @@
 @end
 
 @interface DMNetworksViewController : UITableViewController <UIAlertViewDelegate> {
-    UIProgressHUD           *_hud;
-    UIBarButtonItem         *_scanButton;
-    UISwitch                *_enabledSwitchView;
-    UIActivityIndicatorView *_spinner;
-    NSBundle                *_airPortSettingsBundle;
-    NSTimer                 *_autoScanTimer;
-    long                    _numberOfSections;
-    DMNetwork               *_associatingNetwork;
+	UIProgressHUD           *_hud;
+	UIBarButtonItem         *_scanButton;
+	UISwitch                *_enabledSwitchView;
+	UIActivityIndicatorView *_spinner;
+	NSBundle                *_airPortSettingsBundle;
+	NSTimer                 *_autoScanTimer;
+	long                    _numberOfSections;
+	DMNetwork               *_associatingNetwork;
 }
 
 @end
