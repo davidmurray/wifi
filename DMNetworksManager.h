@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "MobileWiFi.h"
+#import "MobileWiFi/MobileWiFi.h"
 #import "DMNetwork.h"
 
 #define kDMNetworksManagerDidStartScanning     @"DMNetworksManagerDidStartScanning"

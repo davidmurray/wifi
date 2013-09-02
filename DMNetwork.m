@@ -8,6 +8,8 @@
 
 #import "DMNetwork.h"
 
+static void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetVendorCompletion completion);
+
 @implementation DMNetwork
 @synthesize SSID             = _SSID;
 @synthesize RSSI             = _RSSI;
@@ -154,6 +156,8 @@
 	});
 }
 
+@end
+
 static void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetVendorCompletion completion)
 {
 	NSString *address = [NSString stringWithFormat:@"%@/%@/%@", kDMVendorBaseURL, kDMVendorAPIKey, macAddress];
@@ -188,5 +192,3 @@ static void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetV
 		}
 	}];
 }
-
-@end

@@ -1,3 +1,6 @@
 [submodule "theos"]
 	path = theos
 	url = git@github.com:DHowett/theos.git
+[submodule "ios-reversed-headers"]
+	path = ios-reversed-headers
+	url = git@github.com:Cykey/ios-reversed-headers.git

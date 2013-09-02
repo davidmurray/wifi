@@ -7,7 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "MobileWiFi.h"
+#import "MobileWiFi/MobileWiFi.h"
 
 #define kDMVendorBaseURL @"http://www.macvendorlookup.com/api/"
 #define kDMVendorAPIKey  @"CBZBXAV"
@@ -59,5 +59,4 @@ typedef void (^DMNetworkGetVendorCompletion)(NSString *retVal, NSError *error);
 - (id)initWithNetwork:(WiFiNetworkRef)network;
 - (void)populateData;
 
-static void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetVendorCompletion completion);
 @end

@@ -14,14 +14,15 @@
 - (void)_clearNetworks;
 - (void)_addNetwork:(DMNetwork *)network;
 - (void)_scanningDidEnd;
+- (void)_scanningDidFail;
 - (void)_associationDidEnd;
 - (void)_disassociate;
 - (void)_receivedNotificationNamed:(NSString *)name;
 - (void)_reloadCurrentNetwork;
 - (WiFiNetworkRef)_currentNetwork;
 
-static void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token);
-static void associationCallback(WiFiDeviceClientRef device, WiFiNetworkRef networkRef, CFDictionaryRef dict, WiFiErrorRef error, void *token);
+static void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, CFErrorRef error, void *token);
+static void associationCallback(WiFiDeviceClientRef device, WiFiNetworkRef networkRef, CFDictionaryRef dict, CFErrorRef error, void *token);
 static void receivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo);
 
 @end
@@ -192,6 +193,11 @@ static DMNetworksManager *_sharedInstance = nil;
 	WiFiManagerClientUnscheduleFromRunLoop(_manager);
 }
 
+- (void)_scanningDidFail;
+{
+	_scanning = NO;
+}
+
 - (void)_associationDidEnd
 {
 	WiFiManagerClientUnscheduleFromRunLoop(_manager);
@@ -237,19 +243,20 @@ static DMNetworksManager *_sharedInstance = nil;
 
 #pragma mark - Functions
 
-static void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErrorRef error, void *token)
+static void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, CFErrorRef error, void *token)
 {
+	DMNetworksManager *manager = [DMNetworksManager sharedInstance];
+
 	if (error) {
-		CFStringRef errorDescription = CFErrorCopyDescription((CFErrorRef)error);
+		CFStringRef errorDescription = CFErrorCopyDescription(error);
 		NSLog(@"[%s] Error while scanning: %@", __FUNCTION__, errorDescription);
 		CFRelease(errorDescription);
 
-		_scanning = NO;
+		[manager _scanningDidFail];
 
 		return;
 	}
 
-	DMNetworksManager *manager = [DMNetworksManager sharedInstance];
 	[manager _clearNetworks];
 
 	for (unsigned x = 0; x < CFArrayGetCount(results); x++) {
@@ -274,10 +281,10 @@ static void scanCallback(WiFiDeviceClientRef device, CFArrayRef results, WiFiErr
 	[manager _scanningDidEnd];
 }
 
-static void associationCallback(WiFiDeviceClientRef device, WiFiNetworkRef networkRef, CFDictionaryRef dict, WiFiErrorRef error, void *token)
+static void associationCallback(WiFiDeviceClientRef device, WiFiNetworkRef networkRef, CFDictionaryRef dict, CFErrorRef error, void *token)
 {
 	if (error) {
-		CFStringRef errorDescription = CFErrorCopyDescription((CFErrorRef)error);
+		CFStringRef errorDescription = CFErrorCopyDescription(error);
 		NSLog(@"[%s] Error while associating: %@", __FUNCTION__, errorDescription);
 		CFRelease(errorDescription);
 		return;
