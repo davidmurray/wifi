@@ -7,10 +7,10 @@ else
 include theos/makefiles/common.mk
 
 APPLICATION_NAME = WiFi
-WiFi_FILES = main.m WiFiApplication.mm DMNetworksViewController.m DMNetworksManager.m DMInformationViewController.m DMNetwork.m DMDetailViewController.m
+WiFi_FILES = src/main.m src/WiFiApplication.mm src/DMNetworksViewController.m src/DMNetworksManager.m src/DMInformationViewController.m src/DMNetwork.m src/DMDetailViewController.m
 WiFi_FRAMEWORKS = UIKit CoreGraphics
 WiFi_PRIVATE_FRAMEWORKS = MobileWiFi
-WiFi_CODESIGN_FLAGS = -Sentitlements.xml
+WiFi_CODESIGN_FLAGS = -Ssrc/entitlements.xml
 
 ADDITIONAL_CFLAGS = -I$(THEOS_PROJECT_DIR)/ios-reversed-headers/
 
