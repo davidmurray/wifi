@@ -34,5 +34,7 @@
 - (void)reloadNetworks;
 - (NSString *)interfaceName;
 - (void)associateWithNetwork:(DMNetwork *)network;
+- (NSArray *)knownNetworks;
+- (void)removeNetwork:(WiFiNetworkRef)network;
 
 @end

@@ -271,8 +271,7 @@
 			[cell setAccessoryType:UITableViewCellAccessoryDetailDisclosureButton];
 			[cell setAccessoryView:nil];
 
-			// Display a checkmark icon if we are currently connected to that network.
-
+			// Display a blue checkmark icon if we are currently connected to that network.
 			if ([network isCurrentNetwork]) {
 				[[cell imageView] setImage:[UIImage imageWithContentsOfFile:[_airPortSettingsBundle pathForResource:@"BlueCheck@2x" ofType:@"png"]]];
 				[[cell textLabel] setTextColor:[UIColor tableCellValue1BlueColor]];

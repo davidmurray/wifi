@@ -63,7 +63,7 @@
 
 	if (cell == nil) {
 		cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:CellIdentifier] autorelease];
-		[cell setSelectionStyle:UITableViewCellEditingStyleNone];
+		[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
 	}
 
 	switch ([indexPath section]) {

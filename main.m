@@ -1,8 +1,10 @@
-int main(int argc, char **argv) {
-	NSAutoreleasePool *p = [[NSAutoreleasePool alloc] init];
+int main(int argc, char **argv)
+{
+	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+
 	int ret = UIApplicationMain(argc, argv, @"WiFiApplication", @"WiFiApplication");
-	[p drain];
+
+	[pool drain];
+
 	return ret;
 }
-
-// vim:ft=objc

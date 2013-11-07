@@ -149,6 +149,16 @@ static DMNetworksManager *_sharedInstance = nil;
 	return (NSString *)WiFiDeviceClientGetInterfaceName(_client);
 }
 
+- (NSArray *)knownNetworks
+{
+	return [(NSArray *)WiFiManagerClientCopyNetworks(_manager) autorelease];
+}
+
+- (void)removeNetwork:(WiFiNetworkRef)network
+{
+	WiFiManagerClientRemoveNetwork(_manager, network);
+}
+
 #pragma mark - Private APIs
 
 - (void)_scan

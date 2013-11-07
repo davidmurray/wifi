@@ -59,19 +59,17 @@ static void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetV
 
 - (NSString *)description
 {
-	return [NSString stringWithFormat:@"SSID: %@ RSSI: %f Encryption Model: %@ Channel: %i AppleHotspot: %i CurrentNetwork: %i BSSID: %@ AdHoc: %i Hidden: %i Associating: %i", [self SSID], [self RSSI], [self encryptionModel], [self channel], [self isAppleHotspot], [self isCurrentNetwork], [self BSSID], [self isAdHoc], [self isHidden], [self isAssociating]];
+	return [NSString stringWithFormat:@"<%@> SSID: %@ RSSI: %f Encryption Model: %@ Channel: %i AppleHotspot: %i CurrentNetwork: %i BSSID: %@ AdHoc: %i Hidden: %i Associating: %i", [super description], [self SSID], [self RSSI], [self encryptionModel], [self channel], [self isAppleHotspot], [self isCurrentNetwork], [self BSSID], [self isAdHoc], [self isHidden], [self isAssociating]];
 }
 
 
 - (void)populateData
 {
 	// SSID
-
 	NSString *SSID = (NSString *)WiFiNetworkGetSSID(_network);
 	[self setSSID:SSID];
 
 	// RSSI & bars.
-
 	CFNumberRef RSSI = (CFNumberRef)WiFiNetworkGetProperty(_network, CFSTR("RSSI"));
 	float strength;
 	CFNumberGetValue(RSSI, kCFNumberFloatType, &strength);
@@ -88,7 +86,6 @@ static void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetV
 	[self setBars:bars];
 
 	// Encryption model
-
 	if (WiFiNetworkIsWEP(_network))
 		[self setEncryptionModel:@"WEP"];
 	else if (WiFiNetworkIsWPA(_network))
@@ -97,36 +94,29 @@ static void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetV
 		[self setEncryptionModel:@"None"];
 
 	// Channel
-
 	CFNumberRef networkChannel = (CFNumberRef)WiFiNetworkGetProperty(_network, CFSTR("CHANNEL"));
 
 	int channel;
 	CFNumberGetValue(networkChannel, kCFNumberIntType, &channel);
-
 	[self setChannel:channel];
 
 	// Apple Hotspot
-
 	BOOL isAppleHotspot = WiFiNetworkIsApplePersonalHotspot(_network);
 	[self setIsAppleHotspot:isAppleHotspot];
 
 	// BSSID
-
 	NSString *BSSID = (NSString *)WiFiNetworkGetProperty(_network, CFSTR("BSSID"));
 	[self setBSSID:BSSID];
 
 	// AdHoc
-
 	BOOL isAdHoc = WiFiNetworkIsAdHoc(_network);
 	[self setIsAdHoc:isAdHoc];
 
 	// Hidden
-
 	BOOL isHidden = WiFiNetworkIsHidden(_network);
 	[self setIsHidden:isHidden];
 
 	// AP Mode
-
 	int APMode = [(NSNumber *)WiFiNetworkGetProperty(_network, CFSTR("AP_MODE")) intValue];
 	[self setAPMode:APMode];
 
@@ -136,12 +126,10 @@ static void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetV
 	[record release];
 
 	// Requires username
-
 	BOOL requiresUsername = WiFiNetworkRequiresUsername(_network);
 	[self setRequiresUsername:requiresUsername];
 
 	// Requires password
-
 	BOOL requiresPassword = WiFiNetworkRequiresPassword(_network);
 	[self setRequiresPassword:requiresPassword];
 
