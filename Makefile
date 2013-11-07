@@ -7,7 +7,7 @@ else
 include theos/makefiles/common.mk
 
 APPLICATION_NAME = WiFi
-WiFi_FILES = src/main.m src/WiFiApplication.mm src/DMNetworksViewController.m src/DMNetworksManager.m src/DMInformationViewController.m src/DMNetwork.m src/DMDetailViewController.m
+WiFi_FILES = $(wildcard src/*.m*)
 WiFi_FRAMEWORKS = UIKit CoreGraphics
 WiFi_PRIVATE_FRAMEWORKS = MobileWiFi
 WiFi_CODESIGN_FLAGS = -Ssrc/entitlements.xml
