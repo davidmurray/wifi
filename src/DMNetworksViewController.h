@@ -16,6 +16,10 @@
 #define kDMWiFiEnabledSwitchTag     0011
 #define kDMAutoScanEnabledSwitchTag 0022
 
+#ifndef kCFCoreFoundationVersionNumber_iOS_7_0
+#define kCFCoreFoundationVersionNumber_iOS_7_0 847.20
+#endif
+
 
 // Interface declarations for private APIs.
 

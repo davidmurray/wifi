@@ -10,7 +10,7 @@
 
 @interface DMNetworksViewController ()
 
-- (void)scanTapped;
+- (void)scanWasTapped;
 - (void)managerDidBeginScanning;
 - (void)managerDidFinishScanning;
 - (void)managerDidBeginAssociating;
@@ -18,6 +18,9 @@
 - (void)switchValueChanged:(UISwitch *)aSwitch;
 - (void)powerStateDidChange;
 - (void)linkDidChange;
+- (void)scanDidFail:(NSNotification *)notification;
+- (void)associationDidFail:(NSNotification *)notification;
+- (void)managerDidDisassociate;
 
 @end
 
@@ -37,16 +40,19 @@
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managerDidFinishAssociating) name:kDMNetworksManagerDidFinishAssociating object:nil];
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(powerStateDidChange) name:kDMWiFiPowerStateDidChange object:nil];
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(linkDidChange) name:kDMWiFiLinkDidChange object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(scanDidFail:) name:kDMNetworksManagerScanningDidFail object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(associationDidFail:) name:kDMNetworksManagerAssociatingDidFail object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managerDidDisassociate) name:kDMNetworksManagerDidDisassociate object:nil];
 
-		if ([[DMNetworksManager sharedInstance] isWiFiEnabled])
-			[self scanTapped];
+		// Initially start a scan.
+		[self scanWasTapped];
 
 		// I know, this is bad.
 		_airPortSettingsBundle = [[NSBundle bundleWithPath:@"/System/Library/PreferenceBundles/AirPortSettings.bundle"] retain];
 
 		// Set up a timer to automatically initiate a scan every 8 seconds.
 		if ([[NSUserDefaults standardUserDefaults] boolForKey:kDMAutoScanKey])
-			_autoScanTimer = [NSTimer scheduledTimerWithTimeInterval:8 target:self selector:@selector(scanTapped) userInfo:nil repeats:YES];
+			_autoScanTimer = [NSTimer scheduledTimerWithTimeInterval:8 target:self selector:@selector(scanWasTapped) userInfo:nil repeats:YES];
 	}
 
 	return self;
@@ -56,7 +62,7 @@
 {
 	[super viewDidLoad];
 
-	_scanButton = [[UIBarButtonItem alloc] initWithTitle:@"Scan" style:UIBarButtonItemStyleBordered target:self action:@selector(scanTapped)];
+	_scanButton = [[UIBarButtonItem alloc] initWithTitle:@"Scan" style:UIBarButtonItemStyleBordered target:self action:@selector(scanWasTapped)];
 	[_scanButton setEnabled:[[DMNetworksManager sharedInstance] isWiFiEnabled]];
 	[[self navigationItem] setLeftBarButtonItem:_scanButton];
 	[_scanButton release];
@@ -67,15 +73,15 @@
 - (void)dealloc
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
+	[_airPortSettingsBundle release];
 
 	[super dealloc];
-	[_airPortSettingsBundle release];
 }
 
-- (void)scanTapped
+- (void)scanWasTapped
 {
 	// Don't initiate a scan if WiFi is off.
-	if ([[DMNetworksManager sharedInstance] isWiFiEnabled] == NO)
+	if (![[DMNetworksManager sharedInstance] isWiFiEnabled])
 		return;
 
 	if (_numberOfSections == 2) {
@@ -137,8 +143,8 @@
 	if ([aSwitch tag] == kDMWiFiEnabledSwitchTag) {
 		[[DMNetworksManager sharedInstance] setWiFiEnabled:value];
 
-		if (value == YES) {
-			[self scanTapped];
+		if (value) {
+			[self scanWasTapped];
 		} else {
 			if (_numberOfSections == 2) {
 				[[self tableView] beginUpdates];
@@ -162,7 +168,7 @@
 			[_autoScanTimer invalidate];
 			_autoScanTimer = nil;
 		} else {
-			_autoScanTimer = [NSTimer scheduledTimerWithTimeInterval:8 target:self selector:@selector(scanTapped) userInfo:nil repeats:YES];
+			_autoScanTimer = [NSTimer scheduledTimerWithTimeInterval:8 target:self selector:@selector(scanWasTapped) userInfo:nil repeats:YES];
 		}
 	}
 }
@@ -184,7 +190,34 @@
 		[[DMNetworksManager sharedInstance] reloadNetworks];
 }
 
-#pragma mark - Table view data source
+- (void)scanDidFail:(NSNotification *)notification
+{
+	int error = [[[notification userInfo] objectForKey:kDMErrorValueKey] intValue];
+
+	UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Couldn't scan." message:[NSString stringWithFormat:@"There was an error while scanning: %d", error] delegate:nil cancelButtonTitle:@"Dismiss" otherButtonTitles:nil];
+	[alert show];
+	[alert release];
+
+	[[self tableView] reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationNone];
+}
+
+- (void)associationDidFail:(NSNotification *)notification
+{
+	int error = [[[notification userInfo] objectForKey:kDMErrorValueKey] intValue];
+
+	UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Couldn't join network" message:[NSString stringWithFormat:@"There was an error while joining this network. \nError: %d", error] delegate:nil cancelButtonTitle:@"Dismiss" otherButtonTitles:nil];
+	[alert show];
+	[alert release];
+
+	[[self tableView] reloadSections:[NSIndexSet indexSetWithIndex:1] withRowAnimation:UITableViewRowAnimationNone];
+}
+
+- (void)managerDidDisassociate
+{
+	[self scanWasTapped];
+}
+
+#pragma mark - UITableViewDataSource
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
@@ -207,13 +240,17 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-	static NSString *CellIdentifier = @"WiFiCellIdentifier";
-	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:CellIdentifier];
+	static NSString *cellIdentifier = @"WiFiCellIdentifier";
+	UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:cellIdentifier];
 
 	if (cell == nil) {
-		cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:CellIdentifier] autorelease];
+		cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleSubtitle reuseIdentifier:cellIdentifier] autorelease];
 		[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-		[cell setAccessoryType:UITableViewCellAccessoryDetailDisclosureButton];
+
+		if (kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iOS_7_0)
+			[cell setAccessoryType:UITableViewCellAccessoryDetailButton];
+		else
+			[cell setAccessoryType:UITableViewCellAccessoryDetailDisclosureButton];
 	}
 
 	switch ([indexPath section]) {
@@ -260,15 +297,17 @@
 
 				break;
 			}
-		}
-
-		case 1: {
+		} case 1: {
 			DMNetwork *network = [[[DMNetworksManager sharedInstance] networks] objectAtIndex:[indexPath row]];
 
 			[[cell textLabel] setText:[network SSID]];
 			[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [network RSSI]]];
 			[cell setSelectionStyle:UITableViewCellSelectionStyleBlue];
-			[cell setAccessoryType:UITableViewCellAccessoryDetailDisclosureButton];
+			if (kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iOS_7_0)
+				[cell setAccessoryType:UITableViewCellAccessoryDetailButton];
+			else
+				[cell setAccessoryType:UITableViewCellAccessoryDetailDisclosureButton];
+
 			[cell setAccessoryView:nil];
 
 			// Display a blue checkmark icon if we are currently connected to that network.
@@ -323,15 +362,17 @@
 
 		DMNetwork *network = [[manager networks] objectAtIndex:[indexPath row]];
 
-		if ([network requiresUsername] == NO && [network requiresPassword] == NO) {
-			[manager associateWithNetwork:network];
-		} else {
-			UIAlertView *alert = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"\"%@\" requires authentication.", [network SSID]] message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Connect", nil];
-			[alert setAlertViewStyle:([network requiresUsername] == YES ? UIAlertViewStyleLoginAndPasswordInput : UIAlertViewStyleSecureTextInput)];
-			[alert show];
-			[alert release];
+		if (![network isCurrentNetwork]) {
+			if ([network requiresUsername] == NO && [network requiresPassword] == NO) {
+				[manager associateWithNetwork:network];
+			} else {
+				UIAlertView *alert = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"\"%@\" requires authentication.", [network SSID]] message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Connect", nil];
+				[alert setAlertViewStyle:([network requiresUsername] == YES ? UIAlertViewStyleLoginAndPasswordInput : UIAlertViewStyleSecureTextInput)];
+				[alert show];
+				[alert release];
 
-			_associatingNetwork = network;
+				_associatingNetwork = network;
+			}
 		}
 	}
 

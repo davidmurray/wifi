@@ -11,11 +11,15 @@
 #import "DMNetwork.h"
 
 #define kDMNetworksManagerDidStartScanning     @"DMNetworksManagerDidStartScanning"
-#define kDMNetworksManagerDidFinishAssociating @"DMNetworksManagerDidFinishAssociating"
-#define kDMNetworksManagerDidStartAssociating  @"DMNetworksManagerDidStartAssociating"
 #define kDMNetworksManagerDidFinishScanning    @"DMNetworksManagerDidFinishScanning"
+#define kDMNetworksManagerScanningDidFail      @"DMNetworksManagerScanningDidFail"
+#define kDMNetworksManagerDidStartAssociating  @"DMNetworksManagerDidStartAssociating"
+#define kDMNetworksManagerDidFinishAssociating @"DMNetworksManagerDidFinishAssociating"
+#define kDMNetworksManagerAssociatingDidFail   @"DMNetworksManagerAssociatingDidFail"
+#define kDMNetworksManagerDidDisassociate      @"DMNetworksManagerDidDisassociate"
 #define kDMWiFiPowerStateDidChange             @"DMWiFiPowerStateDidChange"
 #define kDMWiFiLinkDidChange                   @"DMWiFiLinkDidChange"
+#define kDMErrorValueKey					   @"DMErrorValueKey"
 
 @interface DMNetworksManager : NSObject {
 	WiFiManagerRef      _manager;
@@ -36,5 +40,6 @@
 - (void)associateWithNetwork:(DMNetwork *)network;
 - (NSArray *)knownNetworks;
 - (void)removeNetwork:(WiFiNetworkRef)network;
+- (void)disassociate;
 
 @end
