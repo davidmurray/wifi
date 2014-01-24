@@ -11,6 +11,7 @@
 @interface DMNetworksViewController ()
 
 - (void)scanWasTapped;
+- (void)_initiateScan;
 - (void)managerDidBeginScanning;
 - (void)managerDidFinishScanning;
 - (void)managerDidBeginAssociating;
@@ -45,14 +46,14 @@
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managerDidDisassociate) name:kDMNetworksManagerDidDisassociate object:nil];
 
 		// Initially start a scan.
-		[self scanWasTapped];
+		[self _initiateScan];
 
 		// I know, this is bad.
 		_airPortSettingsBundle = [[NSBundle bundleWithPath:@"/System/Library/PreferenceBundles/AirPortSettings.bundle"] retain];
 
 		// Set up a timer to automatically initiate a scan every 8 seconds.
 		if ([[NSUserDefaults standardUserDefaults] boolForKey:kDMAutoScanKey])
-			_autoScanTimer = [NSTimer scheduledTimerWithTimeInterval:8 target:self selector:@selector(scanWasTapped) userInfo:nil repeats:YES];
+			_autoScanTimer = [NSTimer scheduledTimerWithTimeInterval:8 target:self selector:@selector(_initiateScan) userInfo:nil repeats:YES];
 	}
 
 	return self;
@@ -79,6 +80,18 @@
 }
 
 - (void)scanWasTapped
+{
+	// If the auto-scan timer is running, restart it so that we do not scan twice in a very short interval.
+	if (_autoScanTimer) {
+		[_autoScanTimer invalidate];
+		_autoScanTimer = nil;
+		_autoScanTimer = [NSTimer scheduledTimerWithTimeInterval:8 target:self selector:@selector(_initiateScan) userInfo:nil repeats:YES];
+	}
+
+	[self _initiateScan];
+}
+
+- (void)_initiateScan
 {
 	// Don't initiate a scan if WiFi is off.
 	if (![[DMNetworksManager sharedInstance] isWiFiEnabled])
@@ -144,7 +157,7 @@
 		[[DMNetworksManager sharedInstance] setWiFiEnabled:value];
 
 		if (value) {
-			[self scanWasTapped];
+			[self _initiateScan];
 		} else {
 			if (_numberOfSections == 2) {
 				[[self tableView] beginUpdates];
@@ -168,7 +181,7 @@
 			[_autoScanTimer invalidate];
 			_autoScanTimer = nil;
 		} else {
-			_autoScanTimer = [NSTimer scheduledTimerWithTimeInterval:8 target:self selector:@selector(scanWasTapped) userInfo:nil repeats:YES];
+			_autoScanTimer = [NSTimer scheduledTimerWithTimeInterval:8 target:self selector:@selector(_initiateScan) userInfo:nil repeats:YES];
 		}
 	}
 }
@@ -214,7 +227,10 @@
 
 - (void)managerDidDisassociate
 {
-	[self scanWasTapped];
+	// gotta fix this
+	if (!_associatingNetwork) {
+		[self _initiateScan];
+	}
 }
 
 #pragma mark - UITableViewDataSource
@@ -226,8 +242,6 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-	// Return the number of rows in the section.
-
 	switch (section) {
 		case 0:
 			return 3;
@@ -335,7 +349,19 @@
 	return cell;
 }
 
-#pragma mark - UITableViewDelegate
+#pragma mark - UITableViewDelegate & UITableViewDataSource
+
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
+{
+	switch (section) {
+		case 0:
+			return @"General";
+		case 1:
+			return @"Networks";
+		default:
+			return nil;
+	}
+}
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath
 {

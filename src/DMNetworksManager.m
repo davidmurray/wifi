@@ -250,17 +250,14 @@ static DMNetworksManager *_sharedInstance = nil;
 
 - (void)_scanDidFailWithError:(int)error
 {
+	_scanning = NO;
+
 	NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:error], kDMErrorValueKey, nil];
 	[[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerScanningDidFail object:nil userInfo:userInfo];
-
-	_scanning = NO;
 }
 
 - (void)_associationDidFailWithError:(int)error
 {
-	NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:error], kDMErrorValueKey, nil];
-	[[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerAssociatingDidFail object:nil userInfo:userInfo];
-
 	WiFiManagerClientUnscheduleFromRunLoop(_manager);
 
 	for (DMNetwork *network in [[DMNetworksManager sharedInstance] networks]) {
@@ -272,6 +269,9 @@ static DMNetworksManager *_sharedInstance = nil;
 
 	// Reload the current network.
 	[self _reloadCurrentNetwork];
+
+	NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:error], kDMErrorValueKey, nil];
+	[[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerAssociatingDidFail object:nil userInfo:userInfo];
 }
 
 #pragma mark - Functions

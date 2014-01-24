@@ -72,7 +72,6 @@
 	switch ([indexPath section]) {
 		case 0: {
 			if ([_network isCurrentNetwork]) {
-				NSLog(@"YES OKAY ERALLY IS CURRENT NET");
 				cell = [tableView dequeueReusableCellWithIdentifier:disconnectCellIndetifier];
 
 				if (cell == nil) {
@@ -84,8 +83,6 @@
 				break;
 
 			} else {
-				NSLog(@"Ynot curent net");
-
 				cell = [tableView dequeueReusableCellWithIdentifier:informationCellIdentifier];
 
 				if (cell == nil) {
@@ -221,7 +218,16 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
-	return (section == 1 ? @"Record" : nil);
+	switch (section) {
+		case 0:
+			return ([_network isCurrentNetwork] ? nil : @"Information");
+		case 1:
+			return ([_network isCurrentNetwork] ? @"Information" : @"Record");
+		case 2:
+			return ([_network isCurrentNetwork] ? @"Record" : nil);
+		default:
+			return nil;
+	}
 }
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
