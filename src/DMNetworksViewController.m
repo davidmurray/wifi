@@ -111,12 +111,18 @@
 
 - (void)managerDidBeginScanning
 {
-	_hud = [[UIProgressHUD alloc] initWithFrame:CGRectZero];
-	[_hud setText:@"Scanning..."];
-	[_hud showInView:[[UIApplication sharedApplication] keyWindow]];
+	// Only show the HUD if this view controller is currently visible.
+	if ([[self navigationController] visibleViewController] == self) {
+		_hud = [[UIProgressHUD alloc] initWithFrame:CGRectZero];
+		[_hud setText:@"Scanning..."];
+		[_hud showInView:[[UIApplication sharedApplication] keyWindow]];
+	}
 
 	// Prevent scrolling the tableview when there's an HUD.
 	[[self tableView] setScrollEnabled:NO];
+
+	// Show the network activity indicator.
+	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:YES];
 }
 
 - (void)managerDidFinishScanning
@@ -132,8 +138,14 @@
 		[[self tableView] endUpdates];
 	}
 
-	[_hud hide];
-	[_hud release];
+	if (_hud) {
+		[_hud hide];
+		[_hud release];
+		_hud = nil;
+	}
+
+	// Hide the network activity indicator.
+	[[UIApplication sharedApplication] setNetworkActivityIndicatorVisible:NO];
 
 	// Display the number of networks in the navigation bar.
 	[self setTitle:[NSString stringWithFormat:@"Networks (%u)", [[[DMNetworksManager sharedInstance] networks] count]]];

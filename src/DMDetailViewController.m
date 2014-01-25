@@ -9,6 +9,13 @@
 #import "DMDetailViewController.h"
 #import "DMNetworksManager.h"
 
+@interface DMDetailViewController ()
+
+- (void)_managerDidFinishScanning;
+- (void)_refreshControlWasPulled;
+
+@end
+
 @implementation DMDetailViewController
 
 - (id)initWithStyle:(UITableViewStyle)style network:(DMNetwork *)network
@@ -19,6 +26,8 @@
 		_network = [network retain];
 
 		_networkRecord = [[network record] copy];
+
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_managerDidFinishScanning) name:kDMNetworksManagerDidFinishScanning object:nil];
 	}
 
 	return self;
@@ -26,8 +35,11 @@
 
 - (void)dealloc
 {
+	[[NSNotificationCenter defaultCenter] removeObserver:self];
+
 	[_network release];
 	[_networkRecord release];
+
 
 	[super dealloc];
 }
@@ -37,6 +49,37 @@
 	[super viewDidLoad];
 
 	[self setTitle:[_network SSID]];
+
+	UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
+    [refreshControl addTarget:self action:@selector(_refreshControlWasPulled) forControlEvents:UIControlEventValueChanged];
+    [self setRefreshControl:refreshControl];
+    [refreshControl release];
+}
+
+- (void)_managerDidFinishScanning
+{
+	[[self refreshControl] endRefreshing];
+
+	NSArray *networks = [[DMNetworksManager sharedInstance] networks];
+
+	for (DMNetwork *network in networks) {
+		if ([[network BSSID] isEqualToString:[_network BSSID]]) {
+			[_network release];
+			_network = nil;
+			_network = [network retain];
+
+			[_networkRecord release];
+			_networkRecord = nil;
+			_networkRecord = [[network record] copy];
+
+			[[self tableView] reloadData];
+		}
+	}
+}
+
+- (void)_refreshControlWasPulled
+{
+	[[DMNetworksManager sharedInstance] reloadNetworks];
 }
 
 #pragma mark - UITableViewDataSource
@@ -52,9 +95,9 @@
 	// Return the number of rows in the section.
 	switch (section) {
 		case 0:
-			return ([_network isCurrentNetwork] ? 1 : 9);
+			return ([_network isCurrentNetwork] ? 1 : 10);
 		case 1:
-			return ([_network isCurrentNetwork] ? 9 : [[_networkRecord allKeys] count]);
+			return ([_network isCurrentNetwork] ? 10 : [[_networkRecord allKeys] count]);
 		case 2:
 			return ([_network isCurrentNetwork] ? [[_networkRecord allKeys] count] : 0);
 		default:
@@ -104,26 +147,30 @@
 						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%i", [_network bars]]];
 						break;
 					} case 3: {
+						[[cell textLabel] setText:@"RSSI"];
+						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [_network RSSI]]];
+						break;
+					} case 4: {
 						[[cell textLabel] setText:@"Apple Personal Hotspot"];
 						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isAppleHotspot] ? @"Yes" : @"No")]];
 						break;
-					} case 4: {
+					} case 5: {
 						[[cell textLabel] setText:@"Mac Address"];
 						[[cell detailTextLabel] setText:[_network BSSID]];
 						break;
-					} case 5: {
+					} case 6: {
 						[[cell textLabel] setText:@"Ad Hoc"];
 						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isAdHoc] ? @"Yes" : @"No")]];
 						break;
-					} case 6: {
+					} case 7: {
 						[[cell textLabel] setText:@"Hidden"];
 						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isHidden] ? @"Yes" : @"No")]];
 						break;
-					} case 7: {
+					} case 8: {
 						[[cell textLabel] setText:@"AP Mode"];
 						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%i", [_network APMode]]];
 						break;
-					} case 8: {
+					} case 9: {
 						[[cell textLabel] setText:@"Vendor"];
 						[[cell detailTextLabel] setText:[_network vendor]];
 						break;
@@ -155,26 +202,30 @@
 						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%i", [_network bars]]];
 						break;
 					} case 3: {
+						[[cell textLabel] setText:@"RSSI"];
+						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [_network RSSI]]];
+						break;
+					} case 4: {
 						[[cell textLabel] setText:@"Apple Personal Hotspot"];
 						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isAppleHotspot] ? @"Yes" : @"No")]];
 						break;
-					} case 4: {
+					} case 5: {
 						[[cell textLabel] setText:@"Mac Address"];
 						[[cell detailTextLabel] setText:[_network BSSID]];
 						break;
-					} case 5: {
+					} case 6: {
 						[[cell textLabel] setText:@"Ad Hoc"];
 						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isAdHoc] ? @"Yes" : @"No")]];
 						break;
-					} case 6: {
+					} case 7: {
 						[[cell textLabel] setText:@"Hidden"];
 						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isHidden] ? @"Yes" : @"No")]];
 						break;
-					} case 7: {
+					} case 8: {
 						[[cell textLabel] setText:@"AP Mode"];
 						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%i", [_network APMode]]];
 						break;
-					} case 8: {
+					} case 9: {
 						[[cell textLabel] setText:@"Vendor"];
 						[[cell detailTextLabel] setText:[_network vendor]];
 						break;
