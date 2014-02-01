@@ -7,11 +7,18 @@
 //
 
 #import "DMNetworksViewController.h"
+#import "DMConstants.h"
+#import "DMNetworksManager.h"
+#import "DMDetailViewController.h"
+#import "DMInformationViewController.h"
+#import "DMAboutViewController.h"
 
 @interface DMNetworksViewController ()
 
-- (void)scanWasTapped;
+- (void)scanButtonWasTapped;
+- (void)infoButtonWasTapped;
 - (void)_initiateScan;
+- (void)_startAutoScanTimerIfNecessary;
 - (void)managerDidBeginScanning;
 - (void)managerDidFinishScanning;
 - (void)managerDidBeginAssociating;
@@ -44,6 +51,8 @@
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(scanDidFail:) name:kDMNetworksManagerScanningDidFail object:nil];
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(associationDidFail:) name:kDMNetworksManagerAssociatingDidFail object:nil];
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managerDidDisassociate) name:kDMNetworksManagerDidDisassociate object:nil];
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userDefaultsDidChange) name:NSUserDefaultsDidChangeNotification object:nil];
+
 
 		// Initially start a scan.
 		[self _initiateScan];
@@ -51,9 +60,8 @@
 		// I know, this is bad.
 		_airPortSettingsBundle = [[NSBundle bundleWithPath:@"/System/Library/PreferenceBundles/AirPortSettings.bundle"] retain];
 
-		// Set up a timer to automatically initiate a scan every 8 seconds.
-		if ([[NSUserDefaults standardUserDefaults] boolForKey:kDMAutoScanKey])
-			_autoScanTimer = [NSTimer scheduledTimerWithTimeInterval:8 target:self selector:@selector(_initiateScan) userInfo:nil repeats:YES];
+		// Set up a timer to automatically initiate a scan at a specified interval.
+		[self _startAutoScanTimerIfNecessary];
 	}
 
 	return self;
@@ -63,10 +71,16 @@
 {
 	[super viewDidLoad];
 
-	_scanButton = [[UIBarButtonItem alloc] initWithTitle:@"Scan" style:UIBarButtonItemStyleBordered target:self action:@selector(scanWasTapped)];
+	_scanButton = [[UIBarButtonItem alloc] initWithTitle:@"Scan" style:UIBarButtonItemStyleBordered target:self action:@selector(scanButtonWasTapped)];
 	[_scanButton setEnabled:[[DMNetworksManager sharedInstance] isWiFiEnabled]];
 	[[self navigationItem] setLeftBarButtonItem:_scanButton];
 	[_scanButton release];
+
+	UIButton *infoButton = [UIButton buttonWithType:UIButtonTypeInfoLight];
+	[infoButton addTarget:self action:@selector(infoButtonWasTapped) forControlEvents:UIControlEventTouchUpInside];
+	UIBarButtonItem *barButton = [[UIBarButtonItem alloc] initWithCustomView:infoButton];
+	[[self navigationItem] setRightBarButtonItem:barButton animated:NO];
+	[barButton release];
 
 	[self setTitle:@"Networks"];
 }
@@ -75,20 +89,28 @@
 {
 	[[NSNotificationCenter defaultCenter] removeObserver:self];
 	[_airPortSettingsBundle release];
+	[_autoScanTimer release];
 
 	[super dealloc];
 }
 
-- (void)scanWasTapped
+- (void)scanButtonWasTapped
 {
 	// If the auto-scan timer is running, restart it so that we do not scan twice in a very short interval.
-	if (_autoScanTimer) {
-		[_autoScanTimer invalidate];
-		_autoScanTimer = nil;
-		_autoScanTimer = [NSTimer scheduledTimerWithTimeInterval:8 target:self selector:@selector(_initiateScan) userInfo:nil repeats:YES];
-	}
+	[self _startAutoScanTimerIfNecessary];
 
+	// Initiate a scan.
 	[self _initiateScan];
+}
+
+- (void)infoButtonWasTapped
+{
+	DMAboutViewController *aboutViewController = [[DMAboutViewController alloc] initWithStyle:UITableViewStyleGrouped];
+	UINavigationController *navigationController = [[UINavigationController alloc] initWithRootViewController:aboutViewController];
+
+	[self presentViewController:navigationController animated:YES completion:nil];
+	[aboutViewController release];
+	[navigationController release];
 }
 
 - (void)_initiateScan
@@ -106,7 +128,24 @@
 		[[self tableView] endUpdates];
 	}
 
-	[[DMNetworksManager sharedInstance] reloadNetworks];
+	[[DMNetworksManager sharedInstance] scan];
+}
+
+- (void)_startAutoScanTimerIfNecessary
+{
+	if (_autoScanTimer) {
+		[_autoScanTimer invalidate];
+		_autoScanTimer = nil;
+	}
+
+	// This auto-scan code should really be refactored.
+	if ([[NSUserDefaults standardUserDefaults] boolForKey:kDMAutoScanEnabledKey]) {
+		NSInteger interval = [[NSUserDefaults standardUserDefaults] integerForKey:kDMAutoScanIntervalKey];
+		if (interval == 0)
+			interval = 8;
+
+		_autoScanTimer = [NSTimer scheduledTimerWithTimeInterval:interval target:self selector:@selector(_initiateScan) userInfo:nil repeats:YES];
+	}
 }
 
 - (void)managerDidBeginScanning
@@ -185,17 +224,23 @@
 	} else {
 		// Save the value.
 		NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-		[defaults setBool:value forKey:kDMAutoScanKey];
+		[defaults setBool:value forKey:kDMAutoScanEnabledKey];
 		[defaults synchronize];
 
 		// Stop the timer if the switch was set to NO or start it if was set to YES.
-		if (value == NO) {
+		if (!value) {
 			[_autoScanTimer invalidate];
 			_autoScanTimer = nil;
 		} else {
-			_autoScanTimer = [NSTimer scheduledTimerWithTimeInterval:8 target:self selector:@selector(_initiateScan) userInfo:nil repeats:YES];
+			[self _startAutoScanTimerIfNecessary];
 		}
 	}
+}
+
+- (void)userDefaultsDidChange
+{
+	// Restart the auto scan timer.
+	[self _startAutoScanTimerIfNecessary];
 }
 
 - (void)linkDidChange
@@ -212,7 +257,7 @@
 	[self switchValueChanged:_enabledSwitchView];
 
 	if (wiFiEnabled)
-		[[DMNetworksManager sharedInstance] reloadNetworks];
+		[self _initiateScan];
 }
 
 - (void)scanDidFail:(NSNotification *)notification
@@ -305,7 +350,7 @@
 
 				UISwitch *switchView = [[UISwitch alloc] init];
 				[switchView setTag:kDMAutoScanEnabledSwitchTag];
-				[switchView setOn:[[NSUserDefaults standardUserDefaults] boolForKey:kDMAutoScanKey] animated:NO];
+				[switchView setOn:[[NSUserDefaults standardUserDefaults] boolForKey:kDMAutoScanEnabledKey] animated:NO];
 				[switchView addTarget:self action:@selector(switchValueChanged:) forControlEvents:UIControlEventValueChanged];
 
 				[cell setAccessoryView:switchView];

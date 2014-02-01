@@ -40,7 +40,6 @@
 	[_network release];
 	[_networkRecord release];
 
-
 	[super dealloc];
 }
 
@@ -51,9 +50,9 @@
 	[self setTitle:[_network SSID]];
 
 	UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
-    [refreshControl addTarget:self action:@selector(_refreshControlWasPulled) forControlEvents:UIControlEventValueChanged];
-    [self setRefreshControl:refreshControl];
-    [refreshControl release];
+	[refreshControl addTarget:self action:@selector(_refreshControlWasPulled) forControlEvents:UIControlEventValueChanged];
+	[self setRefreshControl:refreshControl];
+	[refreshControl release];
 }
 
 - (void)_managerDidFinishScanning

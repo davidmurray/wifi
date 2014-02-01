@@ -7,18 +7,18 @@
 //
 
 #import "DMNetworksManager.h"
+#import "DMNetwork.h"
+#import "DMConstants.h"
 
 @interface DMNetworksManager (Private)
 
 - (void)_scan;
 - (void)_clearNetworks;
 - (void)_addNetwork:(DMNetwork *)network;
-- (void)_scanningDidEnd;
-- (void)_associationDidEnd;
 - (void)_receivedNotificationNamed:(NSString *)name;
 - (void)_reloadCurrentNetwork;
-- (void)_scanDidFailWithError:(int)error;
-- (void)_associationDidFailWithError:(int)error;
+- (void)_scanDidFinishWithError:(int)error;
+- (void)_associationDidFinishWithError:(int)error;
 - (WiFiNetworkRef)_currentNetwork;
 
 static void DMScanCallback(WiFiDeviceClientRef device, CFArrayRef results, int error, const void *token);
@@ -74,7 +74,7 @@ static DMNetworksManager *_sharedInstance = nil;
 	[super dealloc];
 }
 
-- (void)reloadNetworks
+- (void)scan
 {
 	// Prevent initiating a scan when we're already scanning.
 	if (_scanning == YES)
@@ -88,7 +88,7 @@ static DMNetworksManager *_sharedInstance = nil;
 	// Reload the current network.
 	[self _reloadCurrentNetwork];
 
-	// Initiate a scan.
+	// Actually initiate a scan.
 	[self _scan];
 }
 
@@ -172,7 +172,7 @@ static DMNetworksManager *_sharedInstance = nil;
 - (void)_scan
 {
 	WiFiManagerClientScheduleWithRunLoop(_manager, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
-	WiFiDeviceClientScanAsync(_client, (CFDictionaryRef)[NSDictionary dictionary], DMScanCallback, self);
+	WiFiDeviceClientScanAsync(_client, (CFDictionaryRef)[NSDictionary dictionary], DMScanCallback, NULL);
 }
 
 - (void)_clearNetworks
@@ -187,40 +187,6 @@ static DMNetworksManager *_sharedInstance = nil;
 		_networks = [[NSMutableArray alloc] init];
 
 	[_networks addObject:network];
-}
-
-- (void)_scanningDidEnd
-{
-	// Reverse the array so that networks with the highest signal strength go to the top.
-	NSArray *tempNetworks = [[_networks reverseObjectEnumerator] allObjects];
-	[_networks removeAllObjects];
-	[_networks addObjectsFromArray:tempNetworks];
-
-	_scanning = NO;
-
-	// Post a notification to tell the controller that scanning has finished.
-	[[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidFinishScanning object:nil];
-
-	// GTFO THE RUN LOOP.
-	WiFiManagerClientUnscheduleFromRunLoop(_manager);
-}
-
-- (void)_associationDidEnd
-{
-	WiFiManagerClientUnscheduleFromRunLoop(_manager);
-
-	for (DMNetwork *network in [[DMNetworksManager sharedInstance] networks]) {
-		if ([network isAssociating])
-			[network setIsAssociating:NO];
-	}
-
-	_associating = NO;
-
-	// Reload the current network.
-	[self _reloadCurrentNetwork];
-
-	// Post a notification to tell the controller that association has finished.
-	[[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidFinishAssociating object:nil];
 }
 
 - (WiFiNetworkRef)_currentNetwork
@@ -248,15 +214,27 @@ static DMNetworksManager *_sharedInstance = nil;
 	}
 }
 
-- (void)_scanDidFailWithError:(int)error
+- (void)_scanDidFinishWithError:(int)error
 {
+	WiFiManagerClientUnscheduleFromRunLoop(_manager);
+
+	// Reverse the array so that networks with the highest signal strength go to the top.
+	NSArray *tempNetworks = [[_networks reverseObjectEnumerator] allObjects];
+	[_networks removeAllObjects];
+	[_networks addObjectsFromArray:tempNetworks];
+
 	_scanning = NO;
 
-	NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:error], kDMErrorValueKey, nil];
-	[[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerScanningDidFail object:nil userInfo:userInfo];
+	if (error != 0) {
+		NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:error], kDMErrorValueKey, nil];
+		[[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerScanningDidFail object:nil userInfo:userInfo];
+	} else {
+		// Post a notification to tell the controller that scanning has finished.
+		[[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidFinishScanning object:nil];
+	}
 }
 
-- (void)_associationDidFailWithError:(int)error
+- (void)_associationDidFinishWithError:(int)error
 {
 	WiFiManagerClientUnscheduleFromRunLoop(_manager);
 
@@ -270,23 +248,20 @@ static DMNetworksManager *_sharedInstance = nil;
 	// Reload the current network.
 	[self _reloadCurrentNetwork];
 
-	NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:error], kDMErrorValueKey, nil];
-	[[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerAssociatingDidFail object:nil userInfo:userInfo];
+	if (error != 0) {
+		NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber numberWithInt:error], kDMErrorValueKey, nil];
+		[[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerAssociatingDidFail object:nil userInfo:userInfo];
+	} else {
+		// Post a notification to tell the controller that association has finished.
+		[[NSNotificationCenter defaultCenter] postNotificationName:kDMNetworksManagerDidFinishAssociating object:nil];
+	}
 }
 
 #pragma mark - Functions
 
 static void DMScanCallback(WiFiDeviceClientRef device, CFArrayRef results, int error, const void *token)
 {
-	DMNetworksManager *manager = [DMNetworksManager sharedInstance];
-
-	if (error != 0) {
-		[manager _scanDidFailWithError:error];
-
-		return;
-	}
-
-	[manager _clearNetworks];
+	[[DMNetworksManager sharedInstance] _clearNetworks];
 
 	for (unsigned x = 0; x < CFArrayGetCount(results); x++) {
 		WiFiNetworkRef networkRef = (WiFiNetworkRef)CFArrayGetValueAtIndex(results, x);
@@ -294,7 +269,7 @@ static void DMScanCallback(WiFiDeviceClientRef device, CFArrayRef results, int e
 		DMNetwork *network = [[DMNetwork alloc] initWithNetwork:networkRef];
 		[network populateData];
 
-		WiFiNetworkRef currentNetwork = [manager _currentNetwork];
+		WiFiNetworkRef currentNetwork = [[DMNetworksManager sharedInstance] _currentNetwork];
 
 		// WiFiNetworkGetProperty() crashes if the network parameter is NULL therefore we need to check if it exists first.
 		if (currentNetwork) {
@@ -302,22 +277,16 @@ static void DMScanCallback(WiFiDeviceClientRef device, CFArrayRef results, int e
 				[network setIsCurrentNetwork:YES];
 		}
 
-		[manager _addNetwork:network];
+		[[DMNetworksManager sharedInstance] _addNetwork:network];
 
 		[network release];
 	}
 
-	[manager _scanningDidEnd];
+	[[DMNetworksManager sharedInstance] _scanDidFinishWithError:error];
 }
 
 static void DMAssociationCallback(WiFiDeviceClientRef device, WiFiNetworkRef networkRef, CFDictionaryRef dict, int error, const void *token)
 {
-	if (error != 0) {
-		[[DMNetworksManager sharedInstance] _associationDidFailWithError:error];
-
-		return;
-	}
-
 	// Reload every network's data.
 	for (DMNetwork *network in [[DMNetworksManager sharedInstance] networks]) {
 		[network populateData];
@@ -327,7 +296,7 @@ static void DMAssociationCallback(WiFiDeviceClientRef device, WiFiNetworkRef net
 		}
 	}
 
-	[[DMNetworksManager sharedInstance] _associationDidEnd];
+	[[DMNetworksManager sharedInstance] _associationDidFinishWithError:error];
 }
 
 static void DMReceivedNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)

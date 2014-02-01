@@ -8,18 +8,8 @@
 
 #import <UIKit/UIKit.h>
 #import "MobileWiFi/MobileWiFi.h"
-#import "DMNetwork.h"
 
-#define kDMNetworksManagerDidStartScanning     @"DMNetworksManagerDidStartScanning"
-#define kDMNetworksManagerDidFinishScanning    @"DMNetworksManagerDidFinishScanning"
-#define kDMNetworksManagerScanningDidFail      @"DMNetworksManagerScanningDidFail"
-#define kDMNetworksManagerDidStartAssociating  @"DMNetworksManagerDidStartAssociating"
-#define kDMNetworksManagerDidFinishAssociating @"DMNetworksManagerDidFinishAssociating"
-#define kDMNetworksManagerAssociatingDidFail   @"DMNetworksManagerAssociatingDidFail"
-#define kDMNetworksManagerDidDisassociate      @"DMNetworksManagerDidDisassociate"
-#define kDMWiFiPowerStateDidChange             @"DMWiFiPowerStateDidChange"
-#define kDMWiFiLinkDidChange                   @"DMWiFiLinkDidChange"
-#define kDMErrorValueKey					   @"DMErrorValueKey"
+@class DMNetwork;
 
 @interface DMNetworksManager : NSObject {
 	WiFiManagerRef      _manager;
@@ -35,7 +25,7 @@
 @property(nonatomic, assign, getter = isWiFiEnabled) BOOL wiFiEnabled;
 
 + (id)sharedInstance;
-- (void)reloadNetworks;
+- (void)scan;
 - (NSString *)interfaceName;
 - (void)associateWithNetwork:(DMNetwork *)network;
 - (NSArray *)knownNetworks;

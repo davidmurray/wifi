@@ -4,8 +4,25 @@
 <dict>
 	<key>CFBundleExecutable</key>
 	<string>WiFi</string>
-	<key>CFBundleIconFile</key>
-	<string>icon.png</string>
+	<key>CFBundleIcons</key>
+	<dict>
+		<key>CFBundlePrimaryIcon</key>
+		<dict>
+			<key>CFBundleIconFiles</key>
+			<array>
+				<string>icon-20.png</string>
+				<string>icon-29.png</string>
+				<string>icon-40.png</string>
+				<string>icon-58.png</string>
+				<string>icon-76.png</string>
+				<string>icon-80.png</string>
+				<string>icon-120.png</string>
+				<string>icon-152.png</string>
+			</array>
+			<key>UIPrerenderedIcon</key>
+			<false/>
+		</dict>
+	</dict>
 	<key>CFBundleIdentifier</key>
 	<string>me.cykey.wifi</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -47,5 +64,7 @@
 		<string>1</string>
 		<string>2</string>
 	</array>
+	<key>UIPrerenderedIcon</key>
+	<false/>
 </dict>
 </plist>

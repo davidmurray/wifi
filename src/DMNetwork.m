@@ -159,7 +159,7 @@ static void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetV
 
 		NSString *result = [[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] autorelease];
 
-		if ([result isEqualToString:@"none"] == YES) {
+		if ([result isEqualToString:@"none"]) {
 			NSMutableDictionary *errorDetail = [NSMutableDictionary dictionary];
 			[errorDetail setValue:@"Couldn't get vendor because the API returned \"none\"." forKey:NSLocalizedDescriptionKey];
 

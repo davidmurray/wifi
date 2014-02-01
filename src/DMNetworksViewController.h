@@ -7,19 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "DMNetworksManager.h"
-#import "DMDetailViewController.h"
-#import "DMInformationViewController.h"
 
-#define kDMAutoScanKey            @"DMAutoScanKey"
-
-#define kDMWiFiEnabledSwitchTag     0011
-#define kDMAutoScanEnabledSwitchTag 0022
-
-#ifndef kCFCoreFoundationVersionNumber_iOS_7_0
-#define kCFCoreFoundationVersionNumber_iOS_7_0 847.20
-#endif
-
+@class DMNetwork;
 
 // Interface declarations for private APIs.
 
