@@ -9,7 +9,7 @@
 #import "DMNetworksManager.h"
 #import "DMNetwork.h"
 
-@interface DMNetworksManager (Private)
+@interface DMNetworksManager ()
 
 - (void)_scan;
 - (void)_clearNetworks;
