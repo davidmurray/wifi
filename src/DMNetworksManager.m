@@ -8,7 +8,6 @@
 
 #import "DMNetworksManager.h"
 #import "DMNetwork.h"
-#import "DMConstants.h"
 
 @interface DMNetworksManager (Private)
 

@@ -7,7 +7,6 @@
 //
 
 #import "DMAboutViewController.h"
-#import "DMConstants.h"
 
 @interface DMAboutViewController ()
 
@@ -35,11 +34,6 @@
 
 - (void)_doneButtonWasTapped
 {
-	//NSNumberFormatter *formatter = [[NSNumberFormatter alloc] init];
-	//[formatter setNumberStyle:NSNumberFormatterDecimalStyle];
-	//NSNumber *interval = [formatter numberFromString:[_intervalTextField text]];
-	//[formatter release];
-
 	NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
 	[defaults setInteger:[[_intervalTextField text] integerValue] forKey:kDMAutoScanIntervalKey];
 	[defaults synchronize];

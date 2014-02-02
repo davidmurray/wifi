@@ -12,7 +12,7 @@ WiFi_FRAMEWORKS = UIKit CoreGraphics
 WiFi_PRIVATE_FRAMEWORKS = MobileWiFi
 WiFi_CODESIGN_FLAGS = -Ssrc/entitlements.xml
 
-ADDITIONAL_CFLAGS = -I$(THEOS_PROJECT_DIR)/ios-reversed-headers/
+ADDITIONAL_CFLAGS = -I$(THEOS_PROJECT_DIR)/ios-reversed-headers/ -include src/DMConstants.h
 
 include $(THEOS_MAKE_PATH)/application.mk
 

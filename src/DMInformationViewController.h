@@ -5,7 +5,6 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "DMNetworksManager.h"
 
 @interface DMInformationViewController : UITableViewController {
 	NSArray *_knownNetworks;

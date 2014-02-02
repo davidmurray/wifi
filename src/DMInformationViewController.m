@@ -5,6 +5,7 @@
 //
 
 #import "DMInformationViewController.h"
+#import "DMNetworksManager.h"
 
 @interface DMInformationViewController ()
 
