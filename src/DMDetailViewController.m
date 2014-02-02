@@ -78,7 +78,7 @@
 
 - (void)_refreshControlWasPulled
 {
-	[[DMNetworksManager sharedInstance] reloadNetworks];
+	[[DMNetworksManager sharedInstance] scan];
 }
 
 #pragma mark - UITableViewDataSource
