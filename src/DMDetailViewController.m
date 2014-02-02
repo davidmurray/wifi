@@ -8,6 +8,7 @@
 
 #import "DMDetailViewController.h"
 #import "DMNetworksManager.h"
+#import "DMConstants.h"
 
 @interface DMDetailViewController ()
 
