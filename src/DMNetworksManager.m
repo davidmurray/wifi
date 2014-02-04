@@ -50,9 +50,12 @@ static DMNetworksManager *_sharedInstance = nil;
 		_manager = WiFiManagerClientCreate(kCFAllocatorDefault, 0);
 
 		CFArrayRef devices = WiFiManagerClientCopyDevices(_manager);
-		_client = (WiFiDeviceClientRef)CFArrayGetValueAtIndex(devices, 0);
+		if (devices) {
+			_client = (WiFiDeviceClientRef)CFArrayGetValueAtIndex(devices, 0);
+			CFRetain(_client);
 
-		CFRelease(devices);
+			CFRelease(devices);
+		}
 
 		CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, DMReceivedNotification, CFSTR("com.apple.wifi.powerstatedidchange"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 		CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, DMReceivedNotification, CFSTR("com.apple.wifi.linkdidchange"), NULL, CFNotificationSuspensionBehaviorCoalesce);
@@ -65,8 +68,9 @@ static DMNetworksManager *_sharedInstance = nil;
 {
 	CFNotificationCenterRemoveObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, NULL, NULL);
 
-	CFRelease(_manager);
 	CFRelease(_currentNetwork);
+	CFRelease(_client);
+	CFRelease(_manager);
 
 	[self _clearNetworks];
 
