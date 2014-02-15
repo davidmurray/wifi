@@ -29,7 +29,7 @@ static void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetV
 @synthesize isAssociating    = _isAssociating;
 @synthesize requiresUsername = _requiresUsername;
 @synthesize requiresPassword = _requiresPassword;
-@synthesize networkRef       = _network;
+@synthesize _networkRef       = _network;
 
 - (id)initWithNetwork:(WiFiNetworkRef)network
 {
@@ -59,7 +59,7 @@ static void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetV
 
 - (NSString *)description
 {
-	return [NSString stringWithFormat:@"<%@> SSID: %@ RSSI: %f Encryption Model: %@ Channel: %i AppleHotspot: %i CurrentNetwork: %i BSSID: %@ AdHoc: %i Hidden: %i Associating: %i", [super description], [self SSID], [self RSSI], [self encryptionModel], [self channel], [self isAppleHotspot], [self isCurrentNetwork], [self BSSID], [self isAdHoc], [self isHidden], [self isAssociating]];
+	return [NSString stringWithFormat:@"%@ SSID: %@ RSSI: %f Encryption Model: %@ Channel: %i AppleHotspot: %i CurrentNetwork: %i BSSID: %@ AdHoc: %i Hidden: %i Associating: %i", [super description], [self SSID], [self RSSI], [self encryptionModel], [self channel], [self isAppleHotspot], [self isCurrentNetwork], [self BSSID], [self isAdHoc], [self isHidden], [self isAssociating]];
 }
 
 

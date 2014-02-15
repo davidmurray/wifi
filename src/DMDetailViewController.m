@@ -280,13 +280,44 @@
 	}
 }
 
+#pragma mark - UITableViewDelegate
+
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
 	if ([indexPath section] == 0 && [_network isCurrentNetwork]) {
 		[[DMNetworksManager sharedInstance] disassociate];
 
 		[tableView deselectRowAtIndexPath:indexPath animated:YES];
+- (BOOL)tableView:(UITableView *)tableView shouldShowMenuForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+	switch ([indexPath section]) {
+		case 0:
+			return ([_network isCurrentNetwork] ? NO : YES);
+		case 1:
+			return YES;
+		case 2:
+			return YES;
+		default:
+			return NO;
 	}
+}
+
+- (BOOL)tableView:(UITableView *)tableView canPerformAction:(SEL)action forRowAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender
+{
+	return (action == @selector(copy:));
+}
+
+- (void)tableView:(UITableView *)tableView performAction:(SEL)action forRowAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender
+{
+	UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+
+	NSString *text;
+	if ([[cell detailTextLabel] text])
+		text = [NSString stringWithFormat:@"%@: %@", [[cell textLabel] text], [[cell detailTextLabel] text]];
+	else
+		text = [[cell textLabel] text];
+
+	[[UIPasteboard generalPasteboard] setString:text];
 }
 
 @end

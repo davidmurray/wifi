@@ -26,10 +26,10 @@
 
 + (id)sharedInstance;
 - (void)scan;
-- (NSString *)interfaceName;
-- (void)associateWithNetwork:(DMNetwork *)network;
-- (NSArray *)knownNetworks;
 - (void)removeNetwork:(WiFiNetworkRef)network;
+- (void)associateWithNetwork:(DMNetwork *)network;
 - (void)disassociate;
+- (NSArray *)knownNetworks;
+- (NSString *)interfaceName;
 
 @end

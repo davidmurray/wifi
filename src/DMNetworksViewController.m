@@ -405,8 +405,6 @@
 	return cell;
 }
 
-#pragma mark - UITableViewDelegate & UITableViewDataSource
-
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
 	switch (section) {
@@ -418,6 +416,7 @@
 			return nil;
 	}
 }
+#pragma mark - UITableViewDelegate
 
 - (void)tableView:(UITableView *)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath *)indexPath
 {
@@ -445,11 +444,11 @@
 		DMNetwork *network = [[manager networks] objectAtIndex:[indexPath row]];
 
 		if (![network isCurrentNetwork]) {
-			if ([network requiresUsername] == NO && [network requiresPassword] == NO) {
+			if (![network requiresUsername] && ![network requiresPassword]) {
 				[manager associateWithNetwork:network];
 			} else {
 				UIAlertView *alert = [[UIAlertView alloc] initWithTitle:[NSString stringWithFormat:@"\"%@\" requires authentication.", [network SSID]] message:nil delegate:self cancelButtonTitle:@"Cancel" otherButtonTitles:@"Connect", nil];
-				[alert setAlertViewStyle:([network requiresUsername] == YES ? UIAlertViewStyleLoginAndPasswordInput : UIAlertViewStyleSecureTextInput)];
+				[alert setAlertViewStyle:([network requiresUsername] ? UIAlertViewStyleLoginAndPasswordInput : UIAlertViewStyleSecureTextInput)];
 				[alert show];
 				[alert release];
 
@@ -459,6 +458,24 @@
 	}
 
 	[tableView deselectRowAtIndexPath:indexPath animated:YES];
+}
+
+- (BOOL)tableView:(UITableView *)tableView shouldShowMenuForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+	return ([indexPath section] == 1);
+}
+
+- (BOOL)tableView:(UITableView *)tableView canPerformAction:(SEL)action forRowAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender
+{
+	return (action == @selector(copy:));
+}
+
+- (void)tableView:(UITableView *)tableView performAction:(SEL)action forRowAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender
+{
+	DMNetwork *network = [[[DMNetworksManager sharedInstance] networks] objectAtIndex:[indexPath row]];
+
+	NSString *text = [NSString stringWithFormat:@"%@ - %.0f dBm", [network SSID], [network RSSI]];
+	[[UIPasteboard generalPasteboard] setString:text];
 }
 
 #pragma mark - UIAlertViewDelegate

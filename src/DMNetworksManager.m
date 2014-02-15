@@ -35,7 +35,7 @@ static DMNetworksManager *_sharedInstance = nil;
 + (id)sharedInstance
 {
 	@synchronized(self) {
-		if (_sharedInstance == nil)
+		if (!_sharedInstance)
 			_sharedInstance = [[self alloc] init];
 
 		return _sharedInstance;
@@ -80,7 +80,7 @@ static DMNetworksManager *_sharedInstance = nil;
 - (void)scan
 {
 	// Prevent initiating a scan when we're already scanning.
-	if (_scanning == YES)
+	if (_scanning)
 		return;
 
 	_scanning = YES;
@@ -98,7 +98,7 @@ static DMNetworksManager *_sharedInstance = nil;
 - (void)associateWithNetwork:(DMNetwork *)network
 {
 	// Prevent initiating an association if we're already associating.
-	if (_associating == YES)
+	if (_associating)
 		return;
 
 	if (_currentNetwork) {
@@ -113,7 +113,7 @@ static DMNetworksManager *_sharedInstance = nil;
 
 	WiFiManagerClientScheduleWithRunLoop(_manager, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
 
-	WiFiNetworkRef net = [network networkRef];
+	WiFiNetworkRef net = [network _networkRef];
 
 	if (net) {
 		// XXX: Figure out how Apple sets the username.
@@ -186,7 +186,7 @@ static DMNetworksManager *_sharedInstance = nil;
 
 - (void)_addNetwork:(DMNetwork *)network
 {
-	if (_networks == nil)
+	if (!_networks)
 		_networks = [[NSMutableArray alloc] init];
 
 	[_networks addObject:network];

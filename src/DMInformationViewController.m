@@ -6,6 +6,7 @@
 
 #import "DMInformationViewController.h"
 #import "DMNetworksManager.h"
+#import "MobileWiFi/MobileWiFi.h"
 
 @interface DMInformationViewController ()
 
@@ -110,7 +111,7 @@
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath
 {
-	return ([indexPath section]);
+	return ([indexPath section] == 1);
 }
 
 - (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath
@@ -133,6 +134,29 @@
 - (BOOL)tableView:(UITableView *)tableView shouldIndentWhileEditingRowAtIndexPath:(NSIndexPath *)indexPath
 {
 	return NO;
+}
+
+- (BOOL)tableView:(UITableView *)tableView shouldShowMenuForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+	return YES;
+}
+
+- (BOOL)tableView:(UITableView *)tableView canPerformAction:(SEL)action forRowAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender
+{
+	return (action == @selector(copy:));
+}
+
+- (void)tableView:(UITableView *)tableView performAction:(SEL)action forRowAtIndexPath:(NSIndexPath *)indexPath withSender:(id)sender
+{
+	UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
+
+	NSString *text;
+	if ([[cell detailTextLabel] text])
+		text = [NSString stringWithFormat:@"%@ - %@", [[cell textLabel] text], [[cell detailTextLabel] text]];
+	else
+		text = [[cell textLabel] text];
+
+	[[UIPasteboard generalPasteboard] setString:text];
 }
 
 @end

@@ -54,7 +54,7 @@ typedef void (^DMNetworkGetVendorCompletion)(NSString *retVal, NSError *error);
 @property(nonatomic, assign) BOOL isAssociating;
 @property(nonatomic, assign) BOOL requiresPassword;
 @property(nonatomic, assign) BOOL requiresUsername;
-@property(nonatomic, assign, readonly) WiFiNetworkRef networkRef;
+@property(nonatomic, assign, readonly) WiFiNetworkRef _networkRef;
 
 - (id)initWithNetwork:(WiFiNetworkRef)network;
 - (void)populateData;
