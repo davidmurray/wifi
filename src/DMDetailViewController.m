@@ -288,6 +288,9 @@
 		[[DMNetworksManager sharedInstance] disassociate];
 
 		[tableView deselectRowAtIndexPath:indexPath animated:YES];
+	}
+}
+
 - (BOOL)tableView:(UITableView *)tableView shouldShowMenuForRowAtIndexPath:(NSIndexPath *)indexPath
 {
 	switch ([indexPath section]) {
