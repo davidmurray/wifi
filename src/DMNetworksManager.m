@@ -57,6 +57,8 @@ static DMNetworksManager *_sharedInstance = nil;
 			CFRelease(devices);
 		}
 
+		_networks = [[NSMutableArray alloc] init];
+
 		CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, DMReceivedNotification, CFSTR("com.apple.wifi.powerstatedidchange"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 		CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), self, DMReceivedNotification, CFSTR("com.apple.wifi.linkdidchange"), NULL, CFNotificationSuspensionBehaviorCoalesce);
 	}
@@ -180,15 +182,11 @@ static DMNetworksManager *_sharedInstance = nil;
 
 - (void)_clearNetworks
 {
-	[_networks release];
-	_networks = nil;
+	[_networks removeAllObjects];
 }
 
 - (void)_addNetwork:(DMNetwork *)network
 {
-	if (!_networks)
-		_networks = [[NSMutableArray alloc] init];
-
 	[_networks addObject:network];
 }
 
