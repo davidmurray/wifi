@@ -29,7 +29,7 @@ static void DMNetworkGetVendorFromMacAddress(NSString *macAddress, DMNetworkGetV
 @synthesize isAssociating    = _isAssociating;
 @synthesize requiresUsername = _requiresUsername;
 @synthesize requiresPassword = _requiresPassword;
-@synthesize _networkRef       = _network;
+@synthesize _networkRef      = _network;
 
 - (id)initWithNetwork:(WiFiNetworkRef)network
 {
