@@ -12,7 +12,10 @@
 @interface DMDetailViewController ()
 
 - (void)_managerDidFinishScanning;
-- (void)_refreshControlWasPulled;
+- (void)_reload;
+- (UITableViewCell *)_disconnectCell;
+- (UITableViewCell *)_informationCellAtIndexPath:(NSIndexPath *)indexPath;
+- (UITableViewCell *)_recordCellAtIndexPath:(NSIndexPath *)indexPath;
 
 @end
 
@@ -50,9 +53,13 @@
 	[self setTitle:[_network SSID]];
 
 	UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
-	[refreshControl addTarget:self action:@selector(_refreshControlWasPulled) forControlEvents:UIControlEventValueChanged];
+	[refreshControl addTarget:self action:@selector(_reload) forControlEvents:UIControlEventValueChanged];
 	[self setRefreshControl:refreshControl];
 	[refreshControl release];
+
+	UIBarButtonItem *scanButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(_reload)];
+	[[self navigationItem] setRightBarButtonItem:scanButton];
+	[scanButton release];
 }
 
 - (void)_managerDidFinishScanning
@@ -76,7 +83,7 @@
 	}
 }
 
-- (void)_refreshControlWasPulled
+- (void)_reload
 {
 	[[DMNetworksManager sharedInstance] scan];
 }
