@@ -370,8 +370,10 @@
 			DMNetwork *network = [[[DMNetworksManager sharedInstance] networks] objectAtIndex:[indexPath row]];
 
 			[[cell textLabel] setText:[network SSID]];
-			[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [network RSSI]]];
+			int bars = [network bars];
+			[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm (%d Bar%c)", [network RSSI], bars, bars > 1 ? 's' : '\0']];
 			[cell setSelectionStyle:UITableViewCellSelectionStyleBlue];
+
 			if (kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iOS_7_0)
 				[cell setAccessoryType:UITableViewCellAccessoryDetailButton];
 			else
