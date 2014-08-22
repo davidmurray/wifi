@@ -52,7 +52,6 @@
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(managerDidDisassociate) name:kDMNetworksManagerDidDisassociate object:nil];
 		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userDefaultsDidChange) name:NSUserDefaultsDidChangeNotification object:nil];
 
-
 		// Initially start a scan.
 		[self _initiateScan];
 
@@ -382,13 +381,21 @@
 
 			// Display a blue checkmark icon if we are currently connected to that network.
 			if ([network isCurrentNetwork]) {
-				[[cell imageView] setImage:[UIImage imageWithContentsOfFile:[_airPortSettingsBundle pathForResource:@"BlueCheck@2x" ofType:@"png"]]];
+				UIImage *image = nil;
+				if (kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iOS_7_0)
+					image = [_UIImageWithName(@"UIPreferencesBlueCheck.png") imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
+				else
+					image = [UIImage imageNamed:@"BlueCheck" inBundle:_airPortSettingsBundle];
+
+				[[cell imageView] setImage:image];
 				[[cell textLabel] setTextColor:[UIColor tableCellValue1BlueColor]];
+
 				if (_spinner)
 					[_spinner removeFromSuperview];
 			} else {
-				[[cell imageView] setImage:[UIImage imageWithContentsOfFile:[_airPortSettingsBundle pathForResource:@"spacer@2x" ofType:@"png"]]];
+				[[cell imageView] setImage:[UIImage imageNamed:@"spacer" inBundle:_airPortSettingsBundle]];
 				[[cell textLabel] setTextColor:[UIColor blackColor]];
+
 				if ([network isAssociating]) {
 					_spinner = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
 					[[cell imageView] addSubview:_spinner];

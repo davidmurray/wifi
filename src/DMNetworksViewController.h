@@ -21,6 +21,12 @@
 - (void)showInView:(id)arg1;
 @end
 
+@interface UIImage ()
+- (UIImage *)imageNamed:(NSString *)named inBundle:(NSBundle *)bundle;
+@end
+
+UIKIT_EXTERN UIImage *_UIImageWithName(NSString *name);
+
 @interface UIColor (Private)
 + (UIColor *)tableCellValue1BlueColor;
 @end

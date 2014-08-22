@@ -64,7 +64,9 @@
 		<string>1</string>
 		<string>2</string>
 	</array>
-	<key>UIPrerenderedIcon</key>
-	<false/>
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleLightContent</string>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<true/>
 </dict>
 </plist>
