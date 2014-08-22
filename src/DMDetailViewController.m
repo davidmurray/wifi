@@ -7,6 +7,7 @@
 //
 
 #import "DMDetailViewController.h"
+#import "DMHierarchyViewController.h"
 #import "DMNetworksManager.h"
 
 @interface DMDetailViewController ()
@@ -113,161 +114,131 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-	static NSString *disconnectCellIndetifier = @"DisconnectCell";
-	static NSString *informationCellIdentifier = @"InformationCell";
-
 	UITableViewCell *cell = nil;
 
-	switch ([indexPath section]) {
+	NSInteger section = [indexPath section];
+	switch (section) {
 		case 0: {
 			if ([_network isCurrentNetwork]) {
-				cell = [tableView dequeueReusableCellWithIdentifier:disconnectCellIndetifier];
-
-				if (cell == nil) {
-					cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:disconnectCellIndetifier] autorelease];
-					[[cell textLabel] setTextAlignment:NSTextAlignmentCenter];
-				}
-
-				[[cell textLabel] setText:@"Disconnect"];
-				break;
-
+				cell = [self _disconnectCell];
 			} else {
-				cell = [tableView dequeueReusableCellWithIdentifier:informationCellIdentifier];
-
-				if (cell == nil) {
-					cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:informationCellIdentifier] autorelease];
-					[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-				}
-
-				switch ([indexPath row]) {
-					case 0: {
-						[[cell textLabel] setText:@"Encryption Model"];
-						[[cell detailTextLabel] setText:[_network encryptionModel]];
-						break;
-					} case 1: {
-						[[cell textLabel] setText:@"Channel"];
-						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%i", [_network channel]]];
-						break;
-					} case 2: {
-						[[cell textLabel] setText:@"Bars"];
-						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%i", [_network bars]]];
-						break;
-					} case 3: {
-						[[cell textLabel] setText:@"RSSI"];
-						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [_network RSSI]]];
-						break;
-					} case 4: {
-						[[cell textLabel] setText:@"Apple Personal Hotspot"];
-						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isAppleHotspot] ? @"Yes" : @"No")]];
-						break;
-					} case 5: {
-						[[cell textLabel] setText:@"Mac Address"];
-						[[cell detailTextLabel] setText:[_network BSSID]];
-						break;
-					} case 6: {
-						[[cell textLabel] setText:@"Ad Hoc"];
-						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isAdHoc] ? @"Yes" : @"No")]];
-						break;
-					} case 7: {
-						[[cell textLabel] setText:@"Hidden"];
-						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isHidden] ? @"Yes" : @"No")]];
-						break;
-					} case 8: {
-						[[cell textLabel] setText:@"AP Mode"];
-						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%i", [_network APMode]]];
-						break;
-					} case 9: {
-						[[cell textLabel] setText:@"Vendor"];
-						[[cell detailTextLabel] setText:[_network vendor]];
-						break;
-					}
-				}
-
-				break;
+				cell = [self _informationCellAtIndexPath:indexPath];
 			}
+
+			break;
 		} case 1: {
 			if ([_network isCurrentNetwork]) {
-				cell = [tableView dequeueReusableCellWithIdentifier:informationCellIdentifier];
-
-				if (cell == nil) {
-					cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:informationCellIdentifier] autorelease];
-					[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-				}
-
-				switch ([indexPath row]) {
-					case 0: {
-						[[cell textLabel] setText:@"Encryption Model"];
-						[[cell detailTextLabel] setText:[_network encryptionModel]];
-						break;
-					} case 1: {
-						[[cell textLabel] setText:@"Channel"];
-						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%i", [_network channel]]];
-						break;
-					} case 2: {
-						[[cell textLabel] setText:@"Bars"];
-						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%i", [_network bars]]];
-						break;
-					} case 3: {
-						[[cell textLabel] setText:@"RSSI"];
-						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [_network RSSI]]];
-						break;
-					} case 4: {
-						[[cell textLabel] setText:@"Apple Personal Hotspot"];
-						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isAppleHotspot] ? @"Yes" : @"No")]];
-						break;
-					} case 5: {
-						[[cell textLabel] setText:@"Mac Address"];
-						[[cell detailTextLabel] setText:[_network BSSID]];
-						break;
-					} case 6: {
-						[[cell textLabel] setText:@"Ad Hoc"];
-						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isAdHoc] ? @"Yes" : @"No")]];
-						break;
-					} case 7: {
-						[[cell textLabel] setText:@"Hidden"];
-						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isHidden] ? @"Yes" : @"No")]];
-						break;
-					} case 8: {
-						[[cell textLabel] setText:@"AP Mode"];
-						[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%i", [_network APMode]]];
-						break;
-					} case 9: {
-						[[cell textLabel] setText:@"Vendor"];
-						[[cell detailTextLabel] setText:[_network vendor]];
-						break;
-					}
-				}
-
-				break;
+				cell = [self _informationCellAtIndexPath:indexPath];
 			} else {
-				cell = [tableView dequeueReusableCellWithIdentifier:informationCellIdentifier];
-
-				if (cell == nil) {
-					cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:informationCellIdentifier] autorelease];
-					[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-				}
-
-				// XXX: Consider caching this.
-				NSArray *keys = [_networkRecord allKeys];
-				NSString *key = [keys objectAtIndex:[indexPath row]];
-				[[cell textLabel] setText:key];
-				[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", [_networkRecord objectForKey:key]]];
-				break;
+				cell = [self _recordCellAtIndexPath:indexPath];
 			}
+
+			break;
 		} case 2: {
-			cell = [tableView dequeueReusableCellWithIdentifier:informationCellIdentifier];
+			cell = [self _recordCellAtIndexPath:indexPath];
 
-			if (cell == nil) {
-				cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:informationCellIdentifier] autorelease];
-				[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-			}
-
-			// XXX: Consider caching this.
-			NSArray *keys = [_networkRecord allKeys];
-			NSString *key = [keys objectAtIndex:[indexPath row]];
-			[[cell textLabel] setText:key];
-			[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", [_networkRecord objectForKey:key]]];
+			break;
 		}
+	}
+
+	return cell;
+}
+
+- (UITableViewCell *)_disconnectCell
+{
+	static NSString *disconnectCellIndetifier = @"DisconnectCell";
+	UITableViewCell *cell = [[self tableView] dequeueReusableCellWithIdentifier:disconnectCellIndetifier];
+
+	if (!cell) {
+		cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:disconnectCellIndetifier] autorelease];
+		[[cell textLabel] setTextAlignment:NSTextAlignmentCenter];
+	}
+
+	[[cell textLabel] setText:@"Disconnect"];
+
+	return cell;
+}
+
+- (UITableViewCell *)_informationCellAtIndexPath:(NSIndexPath *)indexPath
+{
+	static NSString *informationCellIdentifier = @"InformationCell";
+	UITableViewCell *cell = [[self tableView] dequeueReusableCellWithIdentifier:informationCellIdentifier];
+
+	if (!cell) {
+		cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:informationCellIdentifier] autorelease];
+		[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+		[cell setAccessoryType:UITableViewCellAccessoryNone];
+	}
+
+	switch ([indexPath row]) {
+		case 0: {
+			[[cell textLabel] setText:@"Encryption Model"];
+			[[cell detailTextLabel] setText:[_network encryptionModel]];
+			break;
+		} case 1: {
+			[[cell textLabel] setText:@"Channel"];
+			[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%i", [_network channel]]];
+			break;
+		} case 2: {
+			[[cell textLabel] setText:@"Bars"];
+			[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%i", [_network bars]]];
+			break;
+		} case 3: {
+			[[cell textLabel] setText:@"RSSI"];
+			[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%.0f dBm", [_network RSSI]]];
+			break;
+		} case 4: {
+			[[cell textLabel] setText:@"Apple Personal Hotspot"];
+			[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isAppleHotspot] ? @"Yes" : @"No")]];
+			break;
+		} case 5: {
+			[[cell textLabel] setText:@"Mac Address"];
+			[[cell detailTextLabel] setText:[_network BSSID]];
+			break;
+		} case 6: {
+			[[cell textLabel] setText:@"Ad Hoc"];
+			[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isAdHoc] ? @"Yes" : @"No")]];
+			break;
+		} case 7: {
+			[[cell textLabel] setText:@"Hidden"];
+			[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%@", ([_network isHidden] ? @"Yes" : @"No")]];
+			break;
+		} case 8: {
+			[[cell textLabel] setText:@"AP Mode"];
+			[[cell detailTextLabel] setText:[NSString stringWithFormat:@"%i", [_network APMode]]];
+			break;
+		} case 9: {
+			[[cell textLabel] setText:@"Vendor"];
+			[[cell detailTextLabel] setText:[_network vendor]];
+			break;
+		}
+	}
+
+	return cell;
+}
+
+- (UITableViewCell *)_recordCellAtIndexPath:(NSIndexPath *)indexPath
+{
+	static NSString *recordCellIdentifier = @"RecordCell";
+	UITableViewCell *cell = [[self tableView] dequeueReusableCellWithIdentifier:recordCellIdentifier];
+
+	if (!cell) {
+		cell = [[[UITableViewCell alloc] initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:recordCellIdentifier] autorelease];
+	}
+
+	NSArray *keys = [_networkRecord allKeys];
+	NSString *key = [keys objectAtIndex:[indexPath row]];
+	[[cell textLabel] setText:key];
+
+	id data = [_networkRecord objectForKey:key];
+	if (!DMHierarchyViewControllerDataRequiresFullViewController(data)) {
+		[[cell detailTextLabel] setText:DMHierarchyViewControllerFormattedSmallData(data)];
+		[cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+		[cell setAccessoryType:UITableViewCellAccessoryNone];
+	} else {
+		[[cell detailTextLabel] setText:nil];
+		[cell setAccessoryType:UITableViewCellAccessoryDisclosureIndicator];
+		[cell setSelectionStyle:UITableViewCellSelectionStyleBlue];
 	}
 
 	return cell;
@@ -291,10 +262,34 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
+	[tableView deselectRowAtIndexPath:indexPath animated:YES];
+
 	if ([indexPath section] == 0 && [_network isCurrentNetwork]) {
 		[[DMNetworksManager sharedInstance] disassociate];
+	} else if ([indexPath section] == ([_network isCurrentNetwork] ? 2 : 1)) {
+		NSString *key = [[_networkRecord allKeys] objectAtIndex:[indexPath row]];
+		id data = [[_networkRecord allValues] objectAtIndex:[indexPath row]];
 
-		[tableView deselectRowAtIndexPath:indexPath animated:YES];
+		if (DMHierarchyViewControllerDataRequiresFullViewController(data)) {
+			// Attempt to get the data's "title".
+			NSString *title = @"";
+
+			if ([data isKindOfClass:[NSString class]]) {
+				title = data;
+			} else if ([data isKindOfClass:[NSNumber class]]) {
+				title = key;
+			} else if ([data isKindOfClass:[NSData class]]) {
+				title = key;
+			} else if ([data isKindOfClass:[NSArray class]]) {
+				title = key;
+			} else if ([data isKindOfClass:[NSDictionary class]]) {
+				title = key;
+			}
+
+			DMHierarchyViewController *viewController = [[DMHierarchyViewController alloc] initWithStyle:UITableViewStyleGrouped backingData:data dataTitle:title];
+			[[self navigationController] pushViewController:viewController animated:YES];
+			[viewController release];
+		}
 	}
 }
 
