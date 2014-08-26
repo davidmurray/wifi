@@ -1,15 +1,7 @@
 #import "DMNetworksViewController.h"
+#import "DMAppDelegate.h"
 
-@interface WiFiApplication : UIApplication <UIApplicationDelegate> {
-	UIWindow                 *_window;
-	UINavigationController   *_navigationController;
-	DMNetworksViewController *_networksViewController;
-}
-@property (nonatomic, retain) UIWindow *window;
-
-@end
-
-@implementation WiFiApplication
+@implementation DMAppDelegate
 @synthesize window = _window;
 
 - (void)applicationDidFinishLaunching:(UIApplication *)application
