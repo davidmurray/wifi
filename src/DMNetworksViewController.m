@@ -387,7 +387,7 @@
 				if (kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iOS_7_0)
 					image = [_UIImageWithName(@"UIPreferencesBlueCheck.png") imageWithRenderingMode:UIImageRenderingModeAlwaysTemplate];
 				else
-					image = [UIImage imageNamed:@"BlueCheck" inBundle:_airPortSettingsBundle];
+					image = [UIImage imageNamed:[_airPortSettingsBundle pathForResource:@"BlueCheck" ofType:@"png"]];
 
 				[[cell imageView] setImage:image];
 				[[cell textLabel] setTextColor:[UIColor tableCellValue1BlueColor]];
@@ -395,7 +395,7 @@
 				if (_spinner)
 					[_spinner removeFromSuperview];
 			} else {
-				[[cell imageView] setImage:[UIImage imageNamed:@"spacer" inBundle:_airPortSettingsBundle]];
+				[[cell imageView] setImage:[UIImage imageNamed:[_airPortSettingsBundle pathForResource:@"BlueCheck" ofType:@"png"]]];
 				[[cell textLabel] setTextColor:[UIColor blackColor]];
 
 				if ([network isAssociating]) {
