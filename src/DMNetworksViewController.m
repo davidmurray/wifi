@@ -395,7 +395,7 @@
 				if (_spinner)
 					[_spinner removeFromSuperview];
 			} else {
-				[[cell imageView] setImage:[UIImage imageNamed:[_airPortSettingsBundle pathForResource:@"BlueCheck" ofType:@"png"]]];
+				[[cell imageView] setImage:[UIImage imageNamed:[_airPortSettingsBundle pathForResource:@"spacer" ofType:@"png"]]];
 				[[cell textLabel] setTextColor:[UIColor blackColor]];
 
 				if ([network isAssociating]) {
